@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'features/home/home_screen.dart';
+import 'features/main/main_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'TraceIt',
       theme: AppTheme.lightTheme,
-      home: HomeScreen(),
+      home: const MainScreen(),
     );
   }
 }
