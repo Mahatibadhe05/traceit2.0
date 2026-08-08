@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
@@ -7,15 +8,18 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../locate/locate_screen.dart';
 import '../ring/ring_screen.dart';
+import '../device_information/device_information_screen.dart';
 
 class DeviceOverviewScreen extends StatelessWidget {
   final DeviceModel device;
   final VoidCallback? onDelete;
+  final Function(String newName)? onRename;
 
   const DeviceOverviewScreen({
     super.key,
     required this.device,
     this.onDelete,
+    this.onRename,
   });
 
   IconData getDeviceIcon(String name) {
@@ -30,39 +34,7 @@ class DeviceOverviewScreen extends StatelessWidget {
     return Icons.backpack;
   }
 
-  Widget _statusRow(
-    IconData icon,
-    Color color,
-    String title,
-    String value,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-  
-          Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
-  
-          const SizedBox(width: 14),
-  
-          Expanded(
-            child: Text(title),
-          ),
-  
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget actionCard({
     required BuildContext context,
@@ -165,7 +137,15 @@ class DeviceOverviewScreen extends StatelessWidget {
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == "rename") {
-                // TODO
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => _RenameDeviceScreen(
+                      currentName: device.name,
+                      onSave: onRename,
+                    ),
+                  ),
+                );
               }
         
               if (value == "delete") {
@@ -216,13 +196,19 @@ class DeviceOverviewScreen extends StatelessWidget {
               backgroundColor: Colors.grey.shade200,
             
               center: CircleAvatar(
-                radius: Responsive.w(context, 0.12),
+                radius: Responsive.w(context, 0.15),
                 backgroundColor: Colors.blue.shade50,
-                child: Icon(
-                  getDeviceIcon(device.name),
-                  size: Responsive.w(context, 0.11),
-                  color: Colors.blue,
-                ),
+                backgroundImage:
+                    device.imagePath != null && device.imagePath!.isNotEmpty
+                        ? FileImage(File(device.imagePath!))
+                        : null,
+                child: device.imagePath == null || device.imagePath!.isEmpty
+                    ? Icon(
+                        Icons.devices,
+                        size: Responsive.w(context, 0.15),
+                        color: Colors.blue,
+                      )
+                    : null,
               ),
             ),
             ),
@@ -233,10 +219,13 @@ class DeviceOverviewScreen extends StatelessWidget {
             
             Text(
               device.name,
-              style: TextStyle(
-                fontSize: Responsive.font(context, 0.055),
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF1F2937),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1F2937),
               ),
             ),
             
@@ -276,12 +265,11 @@ class DeviceOverviewScreen extends StatelessWidget {
             SizedBox(height: Responsive.h(context, 0.04)),
             
             Container(
-              padding: EdgeInsets.all(Responsive.w(context, 0.05)),
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(
-                  Responsive.radius(context, 18),
-                ),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
@@ -291,40 +279,36 @@ class DeviceOverviewScreen extends StatelessWidget {
                 ],
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(
-                        Icons.battery_full,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
+                      const Text(
                         "Battery",
-                        style: AppTextStyles.sectionTitle(context),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      const Spacer(),
                       Text(
                         "${device.battery}%",
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
             
-                  SizedBox(height: Responsive.h(context, 0.02)),
+                  const SizedBox(height: 12),
             
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
                       value: device.battery / 100,
-                      minHeight: 10,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor:
-                          const AlwaysStoppedAnimation(Colors.blue),
+                      minHeight: 7,
+                      backgroundColor: const Color(0xFFE5E7EB),
                     ),
                   ),
                 ],
@@ -335,62 +319,53 @@ class DeviceOverviewScreen extends StatelessWidget {
 
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(
-                Responsive.w(context, 0.05),
-              ),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(
-                  Responsive.radius(context, 20),
-                ),
+                borderRadius: BorderRadius.circular(18),
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  Text(
+                  const Text(
                     "Status",
-                    style: AppTextStyles.sectionTitle(context),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-
-                  SizedBox(height: Responsive.h(context, 0.02)),
-
-                  _statusRow(
-                    Icons.bluetooth_connected,
-                    Colors.green,
-                    "Connection",
-                    device.connected ? "Connected" : "Disconnected",
+            
+                  const SizedBox(height: 14),
+            
+                  _StatusRow(
+                    icon: Icons.bluetooth,
+                    label: "Connection",
+                    value: device.connected
+                        ? "Connected"
+                        : "Disconnected",
                   ),
-
-                  Divider(
-                    height: 20,
-                    color: Colors.grey.shade200,
+            
+                  const Divider(height: 22),
+            
+                  _StatusRow(
+                    icon: Icons.network_wifi,
+                    label: "BLE Signal",
+                    value: device.signal,
                   ),
-
-                  _statusRow(
-                    Icons.network_wifi,
-                    Colors.blue,
-                    "BLE Signal",
-                    device.signal.isEmpty ? "Unknown" : device.signal,
-                  ),
-
-                  Divider(
-                    height: 20,
-                    color: Colors.grey.shade200,
-                  ),
-
-                  _statusRow(
-                    Icons.location_on_outlined,
-                    Colors.redAccent,
-                    "Last Seen",
-                    device.lastSeen.isEmpty ? "Never" : device.lastSeen,
+            
+                  const Divider(height: 22),
+            
+                  _StatusRow(
+                    icon: Icons.location_on_outlined,
+                    label: "Last Seen",
+                    value: device.lastSeen,
                   ),
                 ],
               ),
@@ -442,23 +417,233 @@ class DeviceOverviewScreen extends StatelessWidget {
               },
             ),
             
-            SizedBox(height: Responsive.h(context, 0.035)),
+            const SizedBox(height: 24),
             
-            actionCard(
-              context: context,
-              icon: Icons.info_outline,
-              color: Colors.orange,
-              title: "Device Information",
-              subtitle: "Firmware, Bluetooth details and settings",
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "More",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF374151),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 10),
+            
+            GestureDetector(
               onTap: () {
-                // We'll connect this screen next
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DeviceInformationScreen(
+                      device: device,
+                    ),
+                  ),
+                );
               },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 17,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 7,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.info_outline,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+            
+                    const SizedBox(width: 14),
+            
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Device Information",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            "View tracker details",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
             ),
 
             SizedBox(
               height: Responsive.h(context, 0.05),
             ),
 
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StatusRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 19,
+          color: Colors.blue,
+        ),
+
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+        ),
+
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF374151),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RenameDeviceScreen extends StatefulWidget {
+  final String currentName;
+  final Function(String newName)? onSave;
+
+  const _RenameDeviceScreen({
+    required this.currentName,
+    required this.onSave,
+  });
+
+  @override
+  State<_RenameDeviceScreen> createState() => _RenameDeviceScreenState();
+}
+
+class _RenameDeviceScreenState extends State<_RenameDeviceScreen> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.currentName,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final name = _controller.text.trim();
+
+    if (name.isEmpty) return;
+
+    widget.onSave?.call(name);
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text("Rename Device"),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(
+          Responsive.w(context, 0.06),
+        ),
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: "Device name",
+                hintText: "Enter device name",
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            SizedBox(
+              height: Responsive.h(context, 0.03),
+            ),
+
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _save,
+                child: const Text("Save"),
+              ),
+            ),
           ],
         ),
       ),

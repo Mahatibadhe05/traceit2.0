@@ -9,8 +9,6 @@ import '../../core/widgets/device_card.dart';
 import '../../models/device_model.dart';
 import '../add_device/add_device_screen.dart';
 import '../device_overview/device_overview_screen.dart';
-import '../locate/locate_screen.dart';
-import '../ring/ring_screen.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/empty_state.dart';
 import 'widgets/stats_chips.dart';
@@ -29,17 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _clearData();
-  }
-
-  Future<void> _clearData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('devices');
-
-    setState(() {
-      devices.clear();
-      isLoading = false;
-    });
+    _loadDevices();
   }
 
   Future<void> _loadDevices() async {
@@ -95,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
         battery: devices[index].battery,
         signal: devices[index].signal,
         lastSeen: devices[index].lastSeen,
+        imagePath: devices[index].imagePath,
+        rssi: devices[index].rssi,
+        bleId: devices[index].bleId,
       );
     });
 
@@ -109,8 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    print("RESULT = $result");
-
     if (result != null) {
       final device = DeviceModel(
         id: "esp32${DateTime.now().millisecondsSinceEpoch}",
@@ -119,9 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
         battery: 82,
         signal: "Excellent",
         lastSeen: "Just now",
+        imagePath: result["imagePath"],
+        bleId: result["bleId"],
+        rssi: result["rssi"] ?? -55,
       );
-
-      print("DEVICE NAME = ${device.name}");
 
       setState(() {
         devices.add(device);
@@ -192,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "👋 ${getGreeting()}, $userName",
+                      "${getGreeting()}, $userName",
                       style: AppTextStyles.sectionTitle(context).copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -223,6 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final device = devices[index];
                       return DeviceCard(
                         deviceName: device.name,
+                        imagePath: device.imagePath,
                         connected: device.connected,
                         battery: device.battery,
                         lastSeen: device.lastSeen,
@@ -236,6 +227,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 device: device,
                                 onDelete: () {
                                   _deleteDevice(device.id);
+                                },
+                                onRename: (newName) {
+                                  _renameDevice(
+                                    device.id,
+                                    newName,
+                                  );
                                 },
                               ),
                             ),

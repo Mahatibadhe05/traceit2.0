@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../utils/responsive.dart';
@@ -12,6 +13,7 @@ class DeviceCard extends StatelessWidget {
   final int battery;
   final String lastSeen;
   final String signal;
+  final String? imagePath;
 
   const DeviceCard({
     super.key,
@@ -20,6 +22,7 @@ class DeviceCard extends StatelessWidget {
     required this.battery,
     required this.lastSeen,
     required this.signal,
+    this.imagePath,
     this.onDelete,
     this.onRename,
     this.onTap,
@@ -171,20 +174,19 @@ class DeviceCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: Responsive.w(context, 0.14),
-                  height: Responsive.w(context, 0.14),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(
-                      Responsive.radius(context, 14),
-                    ),
-                  ),
-                  child: Icon(
-                    _getDeviceIcon(displayName),
-                    color: Colors.blue,
-                    size: 27,
-                  ),
+                CircleAvatar(
+                  radius: 26, // Slightly larger than 22 to match the old Container feel
+                  backgroundColor: Colors.blue.shade50,
+                  backgroundImage: imagePath != null && imagePath!.isNotEmpty
+                      ? FileImage(File(imagePath!))
+                      : null,
+                  child: imagePath == null || imagePath!.isEmpty
+                      ? Icon(
+                          _getDeviceIcon(displayName),
+                          color: Colors.blue,
+                          size: 27,
+                        )
+                      : null,
                 ),
 
                 SizedBox(

@@ -38,6 +38,7 @@ dependencies:
   flutter_blue_plus: ^1.35.5
   shared_preferences: ^2.5.5
   percent_indicator: ^4.2.3
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:

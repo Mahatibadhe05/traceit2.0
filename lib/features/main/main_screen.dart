@@ -14,7 +14,15 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text("Locate Map")),
+    const Center(
+      child: Text(
+        "Select a device to locate",
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
     const Center(child: Text("Notifications")),
     const Center(child: Text("Settings")),
   ];

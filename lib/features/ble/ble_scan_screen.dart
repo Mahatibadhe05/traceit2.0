@@ -12,12 +12,40 @@ class BleScanScreen extends StatefulWidget {
 }
 
 class _BleScanScreenState extends State<BleScanScreen> {
-  final List<String> devices = [
-    "ESP32_Backpack",
-    "ESP32_Wallet",
-    "ESP32_Keys",
-    "ESP32_Laptop",
+  final List<Map<String, dynamic>> devices = [
+    {
+      "name": "ESP32_Backpack",
+      "id": "BLE_ESP32_001",
+      "rssi": -48,
+    },
+    {
+      "name": "ESP32_Wallet",
+      "id": "BLE_ESP32_002",
+      "rssi": -62,
+    },
+    {
+      "name": "ESP32_Keys",
+      "id": "BLE_ESP32_003",
+      "rssi": -76,
+    },
+    {
+      "name": "ESP32_Laptop",
+      "id": "BLE_ESP32_004",
+      "rssi": -88,
+    },
   ];
+
+  String _getSignalStatus(int rssi) {
+    if (rssi >= -55) {
+      return "Very Close";
+    } else if (rssi >= -70) {
+      return "Close";
+    } else if (rssi >= -85) {
+      return "Far";
+    } else {
+      return "Weak Signal";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +90,23 @@ class _BleScanScreenState extends State<BleScanScreen> {
                         child: Icon(Icons.bluetooth),
                       ),
                       title: Text(
-                        devices[index],
+                        devices[index]["name"],
                         style: AppTextStyles.sectionTitle(context),
                       ),
-                      subtitle: const Text("Tap to connect"),
+                      subtitle: Text(
+                        "${_getSignalStatus(devices[index]["rssi"])} • "
+                        "${devices[index]["rssi"]} dBm",
+                      ),
                       trailing: const Icon(Icons.arrow_forward_ios),
                       onTap: () {
-                        Navigator.pop(context, devices[index]);
+                        Navigator.pop(
+                          context,
+                          {
+                            "name": devices[index]["name"],
+                            "id": devices[index]["id"],
+                            "rssi": devices[index]["rssi"],
+                          },
+                        );
                       },
                     ),
                   );

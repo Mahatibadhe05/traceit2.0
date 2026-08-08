@@ -5,6 +5,11 @@ class DeviceModel {
   final int battery;
   final String signal;
   final String lastSeen;
+  final String? imagePath;
+
+  // BLE-related data
+  final int rssi;
+  final String? bleId;
 
   DeviceModel({
     required this.id,
@@ -13,6 +18,9 @@ class DeviceModel {
     required this.battery,
     required this.signal,
     required this.lastSeen,
+    this.imagePath,
+    this.rssi = -55,
+    this.bleId,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,17 +31,23 @@ class DeviceModel {
       'battery': battery,
       'signal': signal,
       'lastSeen': lastSeen,
+      'imagePath': imagePath,
+      'rssi': rssi,
+      'bleId': bleId,
     };
   }
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) {
     return DeviceModel(
-      id: json['id'],
-      name: json['name'],
-      connected: json['connected'],
-      battery: json['battery'],
-      signal: json['signal'],
-      lastSeen: json['lastSeen'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? 'Unnamed Device',
+      connected: json['connected'] ?? false,
+      battery: json['battery'] ?? 0,
+      signal: json['signal'] ?? 'Unknown',
+      lastSeen: json['lastSeen'] ?? 'Unknown',
+      imagePath: json['imagePath'],
+      rssi: json['rssi'] ?? -55,
+      bleId: json['bleId'],
     );
   }
 }
