@@ -19,8 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      body: pages[selectedIndex],
+      body: IndexedStack(
+        index: selectedIndex,
+        children: pages,
+      ),
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
@@ -32,24 +37,41 @@ class _HomeScreenState extends State<HomeScreen> {
         },
 
         backgroundColor: Colors.white,
+
         indicatorColor: const Color(0xFFE9E6FF),
 
-        destinations: const [
+        height: screenWidth < 360 ? 64 : 80,
+
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.devices_outlined),
+            icon: Icon(
+              Icons.devices_outlined,
+              size: screenWidth < 360 ? 21 : 24,
+            ),
+
             selectedIcon: Icon(
               Icons.devices,
-              color: Color(0xFF6C63FF),
+              color: const Color(0xFF6C63FF),
+              size: screenWidth < 360 ? 21 : 24,
             ),
+
             label: 'Devices',
           ),
 
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
+            icon: Icon(
+              Icons.notifications_outlined,
+              size: screenWidth < 360 ? 21 : 24,
+            ),
+
             selectedIcon: Icon(
               Icons.notifications,
-              color: Color(0xFF6C63FF),
+              color: const Color(0xFF6C63FF),
+              size: screenWidth < 360 ? 21 : 24,
             ),
+
             label: 'Alerts',
           ),
         ],

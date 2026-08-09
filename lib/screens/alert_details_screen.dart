@@ -18,106 +18,150 @@ class AlertDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
+
+    final iconBoxSize = screenWidth < 360 ? 70.0 : 80.0;
+
+    final iconSize = screenWidth < 360 ? 34.0 : 40.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Alert Details',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: const Color(0xFF1E293B),
+            fontSize: screenWidth < 360 ? 20 : 22,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.all(horizontalPadding),
 
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
-                shape: BoxShape.circle,
+          child: Column(
+            children: [
+              SizedBox(
+                height: screenWidth < 360 ? 20 : 30,
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 40,
+
+              Container(
+                width: iconBoxSize,
+                height: iconBoxSize,
+
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: iconSize,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+
+                style: TextStyle(
+                  fontSize: screenWidth < 360 ? 20 : 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1E293B),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            Text(
-              device,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF64748B),
+              Text(
+                device,
+                textAlign: TextAlign.center,
+
+                style: TextStyle(
+                  fontSize: screenWidth < 360 ? 15 : 16,
+                  color: const Color(0xFF64748B),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 5),
+              const SizedBox(height: 5),
 
-            Text(
-              time,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF94A3B8),
+              Text(
+                time,
+                style: TextStyle(
+                  fontSize: screenWidth < 360 ? 12 : 13,
+                  color: const Color(0xFF94A3B8),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 35),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+              SizedBox(
+                height: screenWidth < 360 ? 25 : 35,
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Alert Information',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(
+                  screenWidth < 360 ? 16 : 20,
+                ),
+
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
+                  ],
+                ),
 
-                  SizedBox(height: 15),
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
 
-                  Text(
-                    'This alert was generated by your TraceIt device.',
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 14,
+                  children: [
+                    Text(
+                      'Alert Information',
+                      style: TextStyle(
+                        fontSize:
+                            screenWidth < 360 ? 15 : 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E293B),
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 15),
+
+                    Text(
+                      'This alert was generated by your TraceIt device.',
+
+                      style: TextStyle(
+                        color: const Color(0xFF64748B),
+                        fontSize:
+                            screenWidth < 360 ? 13 : 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

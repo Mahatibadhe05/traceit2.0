@@ -60,6 +60,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(24),
@@ -74,40 +75,44 @@ class _AlertsScreenState extends State<AlertsScreen> {
           'Low Battery',
         ];
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Filter Alerts',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 15,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Filter Alerts',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              ...filters.map(
-                (filter) => ListTile(
-                  title: Text(filter),
-                  trailing: selectedFilter == filter
-                      ? const Icon(
-                          Icons.check,
-                          color: Color(0xFF6C63FF),
-                        )
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      selectedFilter = filter;
-                    });
+                ...filters.map(
+                  (filter) => ListTile(
+                    title: Text(filter),
+                    trailing: selectedFilter == filter
+                        ? const Icon(
+                            Icons.check,
+                            color: Color(0xFF6C63FF),
+                          )
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        selectedFilter = filter;
+                      });
 
-                    Navigator.pop(context);
-                  },
+                      Navigator.pop(context);
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -131,6 +136,14 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final horizontalPadding =
+        screenWidth < 360 ? 14.0 : 20.0;
+
+    final titleFontSize =
+        screenWidth < 360 ? 21.0 : 24.0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
@@ -138,11 +151,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
 
-        title: const Text(
+        title: Text(
           'Alerts',
           style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontSize: 24,
+            color: const Color(0xFF1E293B),
+            fontSize: titleFontSize,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -150,89 +163,114 @@ class _AlertsScreenState extends State<AlertsScreen> {
         actions: [
           TextButton.icon(
             onPressed: showFilterMenu,
-            icon: const Icon(
+
+            icon: Icon(
               Icons.filter_alt_outlined,
-              size: 18,
-              color: Color(0xFF6C63FF),
+              size: screenWidth < 360 ? 16 : 18,
+              color: const Color(0xFF6C63FF),
             ),
-            label: const Text(
+
+            label: Text(
               'Filter',
               style: TextStyle(
-                color: Color(0xFF6C63FF),
+                color: const Color(0xFF6C63FF),
                 fontWeight: FontWeight.bold,
+                fontSize: screenWidth < 360 ? 12 : 14,
               ),
             ),
           ),
         ],
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(horizontalPadding),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  'All Alerts',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
 
-                const Spacer(),
-
-                if (selectedFilter != 'All')
+            children: [
+              Row(
+                children: [
                   Text(
-                    selectedFilter,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6C63FF),
-                      fontWeight: FontWeight.w600,
+                    'All Alerts',
+                    style: TextStyle(
+                      fontSize:
+                          screenWidth < 360 ? 15 : 16,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E293B),
                     ),
                   ),
-              ],
-            ),
 
-            const SizedBox(height: 15),
+                  const Spacer(),
 
-            Expanded(
-              child: filteredAlerts.isEmpty
-                  ? const Center(
+                  if (selectedFilter != 'All')
+                    Flexible(
                       child: Text(
-                        'No alerts found',
+                        selectedFilter,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 15,
+                          fontSize:
+                              screenWidth < 360 ? 11 : 12,
+                          color:
+                              const Color(0xFF6C63FF),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: filteredAlerts.length,
-                      itemBuilder: (context, index) {
-                        final alert = filteredAlerts[index];
-
-                        return _alertCard(
-                          icon: alert['icon'],
-                          iconColor: alert['color'],
-                          title: alert['title'],
-                          device: alert['device'],
-                          time: alert['time'],
-                          onTap: () => openAlertDetails(alert),
-                        );
-                      },
                     ),
-            ),
-          ],
+                ],
+              ),
+
+              const SizedBox(height: 15),
+
+              Expanded(
+                child: filteredAlerts.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No alerts found',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 15,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        physics:
+                            const BouncingScrollPhysics(),
+
+                        itemCount:
+                            filteredAlerts.length,
+
+                        itemBuilder:
+                            (context, index) {
+                          final alert =
+                              filteredAlerts[index];
+
+                          return _alertCard(
+                            screenWidth: screenWidth,
+                            icon: alert['icon'],
+                            iconColor: alert['color'],
+                            title: alert['title'],
+                            device: alert['device'],
+                            time: alert['time'],
+                            onTap: () =>
+                                openAlertDetails(
+                              alert,
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _alertCard({
+    required double screenWidth,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -240,12 +278,24 @@ class _AlertsScreenState extends State<AlertsScreen> {
     required String time,
     required VoidCallback onTap,
   }) {
+    final cardPadding =
+        screenWidth < 360 ? 12.0 : 16.0;
+
+    final iconBoxSize =
+        screenWidth < 360 ? 44.0 : 48.0;
+
+    final iconSize =
+        screenWidth < 360 ? 22.0 : 24.0;
+
     return GestureDetector(
       onTap: onTap,
 
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(
+          bottom: 14,
+        ),
+
+        padding: EdgeInsets.all(cardPadding),
 
         decoration: BoxDecoration(
           color: Colors.white,
@@ -253,7 +303,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color:
+                  Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -263,33 +314,45 @@ class _AlertsScreenState extends State<AlertsScreen> {
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: iconBoxSize,
+              height: iconBoxSize,
 
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(14),
+                color:
+                    iconColor.withValues(alpha: 0.12),
+                borderRadius:
+                    BorderRadius.circular(14),
               ),
 
               child: Icon(
                 icon,
                 color: iconColor,
-                size: 24,
+                size: iconSize,
               ),
             ),
 
-            const SizedBox(width: 14),
+            SizedBox(
+              width: screenWidth < 360 ? 9 : 14,
+            ),
 
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    maxLines: 1,
+                    overflow:
+                        TextOverflow.ellipsis,
+
+                    style: TextStyle(
+                      fontSize:
+                          screenWidth < 360 ? 14 : 15,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color:
+                          const Color(0xFF1E293B),
                     ),
                   ),
 
@@ -297,9 +360,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
                   Text(
                     device,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF64748B),
+                    maxLines: 1,
+                    overflow:
+                        TextOverflow.ellipsis,
+
+                    style: TextStyle(
+                      fontSize:
+                          screenWidth < 360 ? 12 : 13,
+                      color:
+                          const Color(0xFF64748B),
                     ),
                   ),
 
@@ -307,14 +376,18 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
                   Text(
                     time,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF94A3B8),
+                    style: TextStyle(
+                      fontSize:
+                          screenWidth < 360 ? 10 : 11,
+                      color:
+                          const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(width: 5),
 
             const Icon(
               Icons.chevron_right,
