@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 
 class AlertDetailsScreen extends StatelessWidget {
   final String title;
@@ -18,14 +19,6 @@ class AlertDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
-
-    final iconBoxSize = screenWidth < 360 ? 70.0 : 80.0;
-
-    final iconSize = screenWidth < 360 ? 34.0 : 40.0;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
@@ -36,7 +29,7 @@ class AlertDetailsScreen extends StatelessWidget {
           'Alert Details',
           style: TextStyle(
             color: const Color(0xFF1E293B),
-            fontSize: screenWidth < 360 ? 20 : 22,
+            fontSize: Responsive.font(context, 5.5),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -45,17 +38,20 @@ class AlertDetailsScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.all(horizontalPadding),
+
+          padding: EdgeInsets.all(
+            Responsive.w(context, 0.05),
+          ),
 
           child: Column(
             children: [
               SizedBox(
-                height: screenWidth < 360 ? 20 : 30,
+                height: Responsive.h(context, 0.035),
               ),
 
               Container(
-                width: iconBoxSize,
-                height: iconBoxSize,
+                width: Responsive.w(context, 0.205),
+                height: Responsive.w(context, 0.205),
 
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.12),
@@ -65,11 +61,13 @@ class AlertDetailsScreen extends StatelessWidget {
                 child: Icon(
                   icon,
                   color: iconColor,
-                  size: iconSize,
+                  size: Responsive.w(context, 0.103),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(
+                height: Responsive.h(context, 0.025),
+              ),
 
               Text(
                 title,
@@ -78,56 +76,54 @@ class AlertDetailsScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
 
                 style: TextStyle(
-                  fontSize: screenWidth < 360 ? 20 : 22,
+                  fontSize: Responsive.font(context, 5.6),
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E293B),
                 ),
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(
+                height: Responsive.h(context, 0.012),
+              ),
 
               Text(
                 device,
                 textAlign: TextAlign.center,
 
                 style: TextStyle(
-                  fontSize: screenWidth < 360 ? 15 : 16,
+                  fontSize: Responsive.font(context, 4.1),
                   color: const Color(0xFF64748B),
                 ),
               ),
 
-              const SizedBox(height: 5),
+              SizedBox(
+                height: Responsive.h(context, 0.006),
+              ),
 
               Text(
                 time,
                 style: TextStyle(
-                  fontSize: screenWidth < 360 ? 12 : 13,
+                  fontSize: Responsive.font(context, 3.3),
                   color: const Color(0xFF94A3B8),
                 ),
               ),
 
               SizedBox(
-                height: screenWidth < 360 ? 25 : 35,
+                height: Responsive.h(context, 0.04),
               ),
 
               Container(
                 width: double.infinity,
+
                 padding: EdgeInsets.all(
-                  screenWidth < 360 ? 16 : 20,
+                  Responsive.w(context, 0.05),
                 ),
 
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(
+                    Responsive.radius(context, 0.04),
+                  ),
                 ),
 
                 child: Column(
@@ -139,21 +135,22 @@ class AlertDetailsScreen extends StatelessWidget {
                       'Alert Information',
                       style: TextStyle(
                         fontSize:
-                            screenWidth < 360 ? 15 : 16,
+                            Responsive.font(context, 4.1),
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF1E293B),
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    SizedBox(
+                      height: Responsive.h(context, 0.018),
+                    ),
 
                     Text(
                       'This alert was generated by your TraceIt device.',
-
                       style: TextStyle(
                         color: const Color(0xFF64748B),
                         fontSize:
-                            screenWidth < 360 ? 13 : 14,
+                            Responsive.font(context, 3.6),
                         height: 1.4,
                       ),
                     ),

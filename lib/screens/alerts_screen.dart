@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'alert_details_screen.dart';
+import '../utils/responsive.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -61,9 +62,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
+          top: Radius.circular(
+            Responsive.radius(context, 0.06),
+          ),
         ),
       ),
       builder: (context) {
@@ -77,31 +80,42 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 15,
+            padding: EdgeInsets.symmetric(
+              vertical: Responsive.h(context, 0.018),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Filter Alerts',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: Responsive.font(context, 4.6),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                SizedBox(
+                  height: Responsive.h(context, 0.012),
+                ),
 
                 ...filters.map(
                   (filter) => ListTile(
-                    title: Text(filter),
+                    title: Text(
+                      filter,
+                      style: TextStyle(
+                        fontSize:
+                            Responsive.font(context, 3.8),
+                      ),
+                    ),
+
                     trailing: selectedFilter == filter
-                        ? const Icon(
+                        ? Icon(
                             Icons.check,
-                            color: Color(0xFF6C63FF),
+                            color: const Color(0xFF6C63FF),
+                            size: Responsive.w(context, 0.06),
                           )
                         : null,
+
                     onTap: () {
                       setState(() {
                         selectedFilter = filter;
@@ -136,14 +150,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    final horizontalPadding =
-        screenWidth < 360 ? 14.0 : 20.0;
-
-    final titleFontSize =
-        screenWidth < 360 ? 21.0 : 24.0;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
@@ -155,7 +161,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
           'Alerts',
           style: TextStyle(
             color: const Color(0xFF1E293B),
-            fontSize: titleFontSize,
+            fontSize: Responsive.font(context, 6),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -166,7 +172,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
             icon: Icon(
               Icons.filter_alt_outlined,
-              size: screenWidth < 360 ? 16 : 18,
+              size: Responsive.w(context, 0.046),
               color: const Color(0xFF6C63FF),
             ),
 
@@ -175,7 +181,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               style: TextStyle(
                 color: const Color(0xFF6C63FF),
                 fontWeight: FontWeight.bold,
-                fontSize: screenWidth < 360 ? 12 : 14,
+                fontSize: Responsive.font(context, 3.5),
               ),
             ),
           ),
@@ -184,20 +190,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(horizontalPadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.w(context, 0.05),
+            vertical: Responsive.h(context, 0.025),
+          ),
 
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Text(
                     'All Alerts',
                     style: TextStyle(
-                      fontSize:
-                          screenWidth < 360 ? 15 : 16,
+                      fontSize: Responsive.font(context, 4.1),
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF1E293B),
                     ),
@@ -209,12 +215,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     Flexible(
                       child: Text(
                         selectedFilter,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+
                         style: TextStyle(
                           fontSize:
-                              screenWidth < 360 ? 11 : 12,
-                          color:
-                              const Color(0xFF6C63FF),
+                              Responsive.font(context, 3.1),
+                          color: const Color(0xFF6C63FF),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -222,16 +229,19 @@ class _AlertsScreenState extends State<AlertsScreen> {
                 ],
               ),
 
-              const SizedBox(height: 15),
+              SizedBox(
+                height: Responsive.h(context, 0.018),
+              ),
 
               Expanded(
                 child: filteredAlerts.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No alerts found',
                           style: TextStyle(
                             color: Colors.grey,
-                            fontSize: 15,
+                            fontSize:
+                                Responsive.font(context, 3.8),
                           ),
                         ),
                       )
@@ -239,25 +249,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
                         physics:
                             const BouncingScrollPhysics(),
 
-                        itemCount:
-                            filteredAlerts.length,
+                        itemCount: filteredAlerts.length,
 
-                        itemBuilder:
-                            (context, index) {
+                        itemBuilder: (context, index) {
                           final alert =
                               filteredAlerts[index];
 
                           return _alertCard(
-                            screenWidth: screenWidth,
                             icon: alert['icon'],
                             iconColor: alert['color'],
                             title: alert['title'],
                             device: alert['device'],
                             time: alert['time'],
                             onTap: () =>
-                                openAlertDetails(
-                              alert,
-                            ),
+                                openAlertDetails(alert),
                           );
                         },
                       ),
@@ -270,7 +275,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   Widget _alertCard({
-    required double screenWidth,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -278,35 +282,33 @@ class _AlertsScreenState extends State<AlertsScreen> {
     required String time,
     required VoidCallback onTap,
   }) {
-    final cardPadding =
-        screenWidth < 360 ? 12.0 : 16.0;
-
-    final iconBoxSize =
-        screenWidth < 360 ? 44.0 : 48.0;
-
-    final iconSize =
-        screenWidth < 360 ? 22.0 : 24.0;
-
     return GestureDetector(
       onTap: onTap,
 
       child: Container(
-        margin: const EdgeInsets.only(
-          bottom: 14,
+        margin: EdgeInsets.only(
+          bottom: Responsive.h(context, 0.018),
         ),
 
-        padding: EdgeInsets.all(cardPadding),
+        padding: EdgeInsets.all(
+          Responsive.w(context, 0.04),
+        ),
 
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+
+          borderRadius: BorderRadius.circular(
+            Responsive.radius(context, 0.04),
+          ),
 
           boxShadow: [
             BoxShadow(
-              color:
-                  Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: Responsive.w(context, 0.025),
+              offset: Offset(
+                0,
+                Responsive.h(context, 0.004),
+              ),
             ),
           ],
         ),
@@ -314,25 +316,26 @@ class _AlertsScreenState extends State<AlertsScreen> {
         child: Row(
           children: [
             Container(
-              width: iconBoxSize,
-              height: iconBoxSize,
+              width: Responsive.w(context, 0.123),
+              height: Responsive.w(context, 0.123),
 
               decoration: BoxDecoration(
-                color:
-                    iconColor.withValues(alpha: 0.12),
-                borderRadius:
-                    BorderRadius.circular(14),
+                color: iconColor.withValues(alpha: 0.12),
+
+                borderRadius: BorderRadius.circular(
+                  Responsive.radius(context, 0.035),
+                ),
               ),
 
               child: Icon(
                 icon,
                 color: iconColor,
-                size: iconSize,
+                size: Responsive.w(context, 0.062),
               ),
             ),
 
             SizedBox(
-              width: screenWidth < 360 ? 9 : 14,
+              width: Responsive.w(context, 0.035),
             ),
 
             Expanded(
@@ -344,54 +347,53 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   Text(
                     title,
                     maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
                     style: TextStyle(
-                      fontSize:
-                          screenWidth < 360 ? 14 : 15,
+                      fontSize: Responsive.font(context, 3.8),
                       fontWeight: FontWeight.bold,
-                      color:
-                          const Color(0xFF1E293B),
+                      color: const Color(0xFF1E293B),
                     ),
                   ),
 
-                  const SizedBox(height: 5),
+                  SizedBox(
+                    height: Responsive.h(context, 0.006),
+                  ),
 
                   Text(
                     device,
                     maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
                     style: TextStyle(
-                      fontSize:
-                          screenWidth < 360 ? 12 : 13,
-                      color:
-                          const Color(0xFF64748B),
+                      fontSize: Responsive.font(context, 3.3),
+                      color: const Color(0xFF64748B),
                     ),
                   ),
 
-                  const SizedBox(height: 3),
+                  SizedBox(
+                    height: Responsive.h(context, 0.004),
+                  ),
 
                   Text(
                     time,
                     style: TextStyle(
-                      fontSize:
-                          screenWidth < 360 ? 10 : 11,
-                      color:
-                          const Color(0xFF94A3B8),
+                      fontSize: Responsive.font(context, 2.8),
+                      color: const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(width: 5),
+            SizedBox(
+              width: Responsive.w(context, 0.01),
+            ),
 
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: Color(0xFF64748B),
+              color: const Color(0xFF64748B),
+              size: Responsive.w(context, 0.06),
             ),
           ],
         ),

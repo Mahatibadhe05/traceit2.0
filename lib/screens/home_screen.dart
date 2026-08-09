@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'devices_screen.dart';
 import 'alerts_screen.dart';
+import '../utils/responsive.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,8 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       body: IndexedStack(
         index: selectedIndex,
@@ -40,21 +39,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
         indicatorColor: const Color(0xFFE9E6FF),
 
-        height: screenWidth < 360 ? 64 : 80,
+        height: Responsive.h(context, 0.10),
 
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelBehavior:
+            NavigationDestinationLabelBehavior.alwaysShow,
 
         destinations: [
           NavigationDestination(
             icon: Icon(
               Icons.devices_outlined,
-              size: screenWidth < 360 ? 21 : 24,
+              size: Responsive.w(context, 0.06),
             ),
 
             selectedIcon: Icon(
               Icons.devices,
               color: const Color(0xFF6C63FF),
-              size: screenWidth < 360 ? 21 : 24,
+              size: Responsive.w(context, 0.06),
             ),
 
             label: 'Devices',
@@ -63,13 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(
               Icons.notifications_outlined,
-              size: screenWidth < 360 ? 21 : 24,
+              size: Responsive.w(context, 0.06),
             ),
 
             selectedIcon: Icon(
               Icons.notifications,
               color: const Color(0xFF6C63FF),
-              size: screenWidth < 360 ? 21 : 24,
+              size: Responsive.w(context, 0.06),
             ),
 
             label: 'Alerts',

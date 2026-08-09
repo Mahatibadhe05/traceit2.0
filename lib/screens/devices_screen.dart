@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_device_screen.dart';
+import '../utils/responsive.dart';
 
 class DevicesScreen extends StatefulWidget {
   const DevicesScreen({super.key});
@@ -72,18 +73,26 @@ class _DevicesScreenState extends State<DevicesScreen> {
             children: [
               Icon(
                 device['icon'],
-                size: 55,
+                size: Responsive.w(context, 0.14),
                 color: device['color'],
               ),
-              const SizedBox(height: 15),
+              SizedBox(
+                height: Responsive.h(context, 0.02),
+              ),
               Text(
                 device['connected']
                     ? 'Connected'
                     : 'Disconnected',
               ),
-              const SizedBox(height: 8),
-              Text('Battery: ${device['battery']}%'),
-              const SizedBox(height: 8),
+              SizedBox(
+                height: Responsive.h(context, 0.01),
+              ),
+              Text(
+                'Battery: ${device['battery']}%',
+              ),
+              SizedBox(
+                height: Responsive.h(context, 0.01),
+              ),
               const Text('Bluetooth device'),
             ],
           ),
@@ -100,16 +109,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    final horizontalPadding = screenWidth < 360 ? 14.0 : 20.0;
-
-    final cardPadding = screenWidth < 360 ? 12.0 : 16.0;
-
-    final iconBoxSize = screenWidth < 360 ? 46.0 : 52.0;
-
-    final iconSize = screenWidth < 360 ? 24.0 : 28.0;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
@@ -121,7 +120,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
           'Devices',
           style: TextStyle(
             color: const Color(0xFF1E293B),
-            fontSize: screenWidth < 360 ? 21 : 24,
+            fontSize: Responsive.font(context, 6),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -129,9 +128,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
         actions: [
           IconButton(
             onPressed: addDevice,
-            icon: const Icon(
+            icon: Icon(
               Icons.add,
-              color: Color(0xFF6C63FF),
+              color: const Color(0xFF6C63FF),
+              size: Responsive.w(context, 0.06),
             ),
           ),
         ],
@@ -139,7 +139,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(horizontalPadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.w(context, 0.05),
+            vertical: Responsive.h(context, 0.025),
+          ),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,13 +150,15 @@ class _DevicesScreenState extends State<DevicesScreen> {
               Text(
                 'My Devices',
                 style: TextStyle(
-                  fontSize: screenWidth < 360 ? 15 : 16,
+                  fontSize: Responsive.font(context, 4.1),
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E293B),
                 ),
               ),
 
-              const SizedBox(height: 15),
+              SizedBox(
+                height: Responsive.h(context, 0.018),
+              ),
 
               Expanded(
                 child: ListView.builder(
@@ -162,38 +167,33 @@ class _DevicesScreenState extends State<DevicesScreen> {
 
                   itemBuilder: (context, index) {
                     if (index == devices.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 10,
-                        ),
+                      return SizedBox(
+                        width: double.infinity,
+                        height: Responsive.h(context, 0.065),
 
-                        child: SizedBox(
-                          height: screenWidth < 360 ? 48 : 52,
-                          width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: addDevice,
 
-                          child: ElevatedButton.icon(
-                            onPressed: addDevice,
+                          icon: const Icon(Icons.add),
 
-                            icon: const Icon(Icons.add),
-
-                            label: Text(
-                              'Add New Device',
-                              style: TextStyle(
-                                fontSize:
-                                    screenWidth < 360 ? 14 : 15,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          label: Text(
+                            'Add New Device',
+                            style: TextStyle(
+                              fontSize:
+                                  Responsive.font(context, 3.8),
+                              fontWeight: FontWeight.bold,
                             ),
+                          ),
 
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color(0xFF6C63FF),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color(0xFF6C63FF),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
 
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                Responsive.radius(context, 0.035),
                               ),
                             ),
                           ),
@@ -204,10 +204,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
                     return _deviceCard(
                       devices[index],
                       index,
-                      cardPadding,
-                      iconBoxSize,
-                      iconSize,
-                      screenWidth,
                     );
                   },
                 ),
@@ -222,28 +218,33 @@ class _DevicesScreenState extends State<DevicesScreen> {
   Widget _deviceCard(
     Map<String, dynamic> device,
     int index,
-    double cardPadding,
-    double iconBoxSize,
-    double iconSize,
-    double screenWidth,
   ) {
     final bool connected = device['connected'];
     final int battery = device['battery'];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: EdgeInsets.only(
+        bottom: Responsive.h(context, 0.018),
+      ),
 
-      padding: EdgeInsets.all(cardPadding),
+      padding: EdgeInsets.all(
+        Responsive.w(context, 0.04),
+      ),
 
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(
+          Responsive.radius(context, 0.04),
+        ),
 
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            blurRadius: Responsive.w(context, 0.025),
+            offset: Offset(
+              0,
+              Responsive.h(context, 0.004),
+            ),
           ),
         ],
       ),
@@ -251,23 +252,25 @@ class _DevicesScreenState extends State<DevicesScreen> {
       child: Row(
         children: [
           Container(
-            width: iconBoxSize,
-            height: iconBoxSize,
+            width: Responsive.w(context, 0.13),
+            height: Responsive.w(context, 0.13),
 
             decoration: BoxDecoration(
               color: device['color'].withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(
+                Responsive.radius(context, 0.035),
+              ),
             ),
 
             child: Icon(
               device['icon'],
               color: device['color'],
-              size: iconSize,
+              size: Responsive.w(context, 0.07),
             ),
           ),
 
           SizedBox(
-            width: screenWidth < 360 ? 9 : 14,
+            width: Responsive.w(context, 0.035),
           ),
 
           Expanded(
@@ -280,19 +283,21 @@ class _DevicesScreenState extends State<DevicesScreen> {
                   overflow: TextOverflow.ellipsis,
 
                   style: TextStyle(
-                    fontSize: screenWidth < 360 ? 15 : 16,
+                    fontSize: Responsive.font(context, 4.1),
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF1E293B),
                   ),
                 ),
 
-                const SizedBox(height: 5),
+                SizedBox(
+                  height: Responsive.h(context, 0.006),
+                ),
 
                 Row(
                   children: [
                     Container(
-                      width: 8,
-                      height: 8,
+                      width: Responsive.w(context, 0.02),
+                      height: Responsive.w(context, 0.02),
 
                       decoration: BoxDecoration(
                         color: connected
@@ -302,19 +307,20 @@ class _DevicesScreenState extends State<DevicesScreen> {
                       ),
                     ),
 
-                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: Responsive.w(context, 0.015),
+                    ),
 
                     Flexible(
                       child: Text(
                         connected
                             ? 'Connected'
                             : 'Disconnected',
-
                         overflow: TextOverflow.ellipsis,
 
                         style: TextStyle(
                           fontSize:
-                              screenWidth < 360 ? 11 : 12,
+                              Responsive.font(context, 3.1),
                           color: connected
                               ? const Color(0xFF28C76F)
                               : const Color(0xFFFF4F4F),
@@ -324,22 +330,24 @@ class _DevicesScreenState extends State<DevicesScreen> {
                     ),
 
                     SizedBox(
-                      width: screenWidth < 360 ? 7 : 12,
+                      width: Responsive.w(context, 0.025),
                     ),
 
-                    const Icon(
+                    Icon(
                       Icons.battery_full,
-                      size: 15,
+                      size: Responsive.w(context, 0.038),
                       color: Colors.grey,
                     ),
 
-                    const SizedBox(width: 3),
+                    SizedBox(
+                      width: Responsive.w(context, 0.008),
+                    ),
 
                     Text(
                       '$battery%',
                       style: TextStyle(
                         fontSize:
-                            screenWidth < 360 ? 11 : 12,
+                            Responsive.font(context, 3.1),
                         color: Colors.grey,
                       ),
                     ),
@@ -349,10 +357,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
             ),
           ),
 
-          const Icon(
+          Icon(
             Icons.bluetooth,
             color: Colors.grey,
-            size: 20,
+            size: Responsive.w(context, 0.05),
           ),
 
           PopupMenuButton<String>(

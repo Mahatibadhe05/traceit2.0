@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({super.key});
@@ -18,97 +19,115 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Keeps the content comfortable on both small and large phones.
-    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
 
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Add New Device',
           style: TextStyle(
+            fontSize: Responsive.font(context, 6),
             fontWeight: FontWeight.bold,
+            color: const Color(0xFF1E293B),
           ),
         ),
       ),
 
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(horizontalPadding),
+          padding: EdgeInsets.all(
+            Responsive.w(context, 0.05),
+          ),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                height: screenWidth < 360 ? 20 : 30,
+                height: Responsive.h(context, 0.03),
               ),
 
-              // Device icon
               Center(
                 child: Container(
-                  width: screenWidth < 360 ? 70 : 80,
-                  height: screenWidth < 360 ? 70 : 80,
+                  width: Responsive.w(context, 0.2),
+                  height: Responsive.w(context, 0.2),
+
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6C63FF).withOpacity(0.12),
+                    color: const Color(0xFF6C63FF)
+                        .withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
+
                   child: Icon(
                     Icons.devices,
-                    size: screenWidth < 360 ? 32 : 38,
+                    size: Responsive.w(context, 0.09),
                     color: const Color(0xFF6C63FF),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 25),
+              SizedBox(
+                height: Responsive.h(context, 0.025),
+              ),
 
               Text(
                 'Add a new device',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: screenWidth < 360 ? 20 : 22,
+                  fontSize: Responsive.font(context, 5.5),
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF1E293B),
                 ),
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(
+                height: Responsive.h(context, 0.01),
+              ),
 
-              const Text(
+              Text(
                 'Enter a name for the device you want to track.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF64748B),
+                  fontSize: Responsive.font(context, 3.5),
+                  color: const Color(0xFF64748B),
                 ),
               ),
 
-              const SizedBox(height: 30),
+              SizedBox(
+                height: Responsive.h(context, 0.03),
+              ),
 
               TextField(
                 controller: nameController,
                 textInputAction: TextInputAction.done,
+
                 decoration: InputDecoration(
                   labelText: 'Device Name',
                   hintText: 'e.g. Watch',
                   prefixIcon: const Icon(Icons.devices),
+
                   filled: true,
                   fillColor: Colors.white,
+
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 0.035),
+                    ),
                     borderSide: BorderSide.none,
                   ),
+
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 0.035),
+                    ),
                     borderSide: BorderSide.none,
                   ),
+
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 0.035),
+                    ),
                     borderSide: const BorderSide(
                       color: Color(0xFF6C63FF),
                       width: 2,
@@ -117,11 +136,13 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(
+                height: Responsive.h(context, 0.025),
+              ),
 
               SizedBox(
                 width: double.infinity,
-                height: screenWidth < 360 ? 48 : 52,
+                height: Responsive.h(context, 0.065),
 
                 child: ElevatedButton(
                   onPressed: () {
@@ -147,22 +168,20 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     elevation: 0,
 
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        Responsive.radius(context, 0.035),
+                      ),
                     ),
                   ),
 
-                  child: const Text(
+                  child: Text(
                     'Add Device',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: Responsive.font(context, 3.8),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-              ),
-
-              SizedBox(
-                height: screenWidth < 360 ? 20 : 30,
               ),
             ],
           ),
