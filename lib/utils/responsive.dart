@@ -2,9 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class Responsive {
-  // Reference dimensions for a typical mobile screen.
-  static const double maxWidth = 430;
-  static const double maxHeight = 932;
+  static const double baseWidth = 390;
+  static const double baseHeight = 844;
 
   static double screenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
@@ -14,42 +13,49 @@ class Responsive {
     return MediaQuery.of(context).size.height;
   }
 
+  // Use values like 0.05 for 5% of screen width.
   static double w(BuildContext context, double value) {
     final width = math.min(
       screenWidth(context),
-      maxWidth,
+      430,
     );
 
     return width * value;
   }
 
+  // Use values like 0.03 for 3% of screen height.
   static double h(BuildContext context, double value) {
     final height = math.min(
       screenHeight(context),
-      maxHeight,
+      932,
     );
 
     return height * value;
   }
 
+  // Responsive font scaling.
   static double font(BuildContext context, double value) {
     final shortestSide =
         MediaQuery.of(context).size.shortestSide;
 
-    final responsiveSide = math.min(
+    final scale = math.min(
       shortestSide,
-      maxWidth,
+      baseWidth,
     );
 
-    return responsiveSide * (value / 100);
+    return scale * (value / 100);
   }
 
+  // Radius uses pixel-like values.
+  // Example: Responsive.radius(context, 14)
   static double radius(BuildContext context, double value) {
-    final width = math.min(
-      screenWidth(context),
-      maxWidth,
+    final width = screenWidth(context);
+
+    final scale = math.min(
+      width / baseWidth,
+      1.1,
     );
 
-    return width * value;
+    return value * scale;
   }
 }
