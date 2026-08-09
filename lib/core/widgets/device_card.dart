@@ -144,6 +144,8 @@ class DeviceCard extends StatelessWidget {
         ? 'Unnamed Device'
         : deviceName.trim();
 
+    final double imageRadius = Responsive.w(context, 0.095);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -157,13 +159,17 @@ class DeviceCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(
-            Responsive.radius(context, 18),
+            Responsive.radius(context, 22),
+          ),
+          border: Border.all(
+            color: const Color(0xFFE8EEF8),
+            width: 1,
           ),
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 4),
+              color: Color(0x12000000),
+              blurRadius: 18,
+              offset: Offset(0, 7),
             ),
           ],
         ),
@@ -172,64 +178,88 @@ class DeviceCard extends StatelessWidget {
           children: [
             // DEVICE HEADER
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 26, // Slightly larger than 22 to match the old Container feel
-                  backgroundColor: Colors.blue.shade50,
-                  backgroundImage: imagePath != null && imagePath!.isNotEmpty
-                      ? FileImage(File(imagePath!))
-                      : null,
-                  child: imagePath == null || imagePath!.isEmpty
-                      ? Icon(
-                          _getDeviceIcon(displayName),
-                          color: Colors.blue,
-                          size: 27,
-                        )
-                      : null,
+                // DEVICE IMAGE WITH CONNECTION RING
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: connected
+                          ? const Color(0xFF63D391)
+                          : const Color(0xFFD1D5DB),
+                      width: 2.5,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: imageRadius,
+                    backgroundColor: const Color(0xFFF1F5FF),
+                    backgroundImage:
+                        imagePath != null && imagePath!.isNotEmpty
+                            ? FileImage(File(imagePath!))
+                            : null,
+                    child: imagePath == null || imagePath!.isEmpty
+                        ? Icon(
+                            _getDeviceIcon(displayName),
+                            color: const Color(0xFF246BFE),
+                            size: Responsive.w(context, 0.085),
+                          )
+                        : null,
+                  ),
                 ),
 
                 SizedBox(
-                  width: Responsive.w(context, 0.035),
+                  width: Responsive.w(context, 0.045),
                 ),
 
                 // DEVICE NAME + STATUS
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        displayName,
-                        style: const TextStyle(
-                          color: Color(0xFF111827),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: Responsive.h(context, 0.028),
+                      left: Responsive.w(context, 0.005),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF111827),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 6),
-
-                      Text(
-                        connected
-                            ? 'Connected'
-                            : 'Disconnected',
-                        style: TextStyle(
-                          color: connected
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                        SizedBox(
+                          height: Responsive.h(context, 0.008),
                         ),
-                      ),
-                    ],
+
+                        Text(
+                          connected ? 'Connected' : 'Disconnected',
+                          style: TextStyle(
+                            color: connected
+                                ? const Color(0xFF31A85B)
+                                : const Color(0xFFDC4545),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
                 PopupMenuButton<String>(
-                  icon: const Icon(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
                     Icons.more_vert,
-                    color: Colors.black54,
+                    color: const Color(0xFF6B7280),
+                    size: Responsive.w(context, 0.065),
                   ),
                   onSelected: (value) {
                     if (value == 'rename') {
@@ -260,46 +290,92 @@ class DeviceCard extends StatelessWidget {
 
             // DEVICE INFO
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Icon(
+                  Icons.access_time_rounded,
+                  color: const Color(0xFF3276E8),
+                  size: Responsive.w(context, 0.06),
+                ),
+
+                SizedBox(
+                  width: Responsive.w(context, 0.025),
+                ),
+
                 Expanded(
-                  child: Text(
-                    'Last synced • $lastSeen',
-                    style: const TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 13,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Last synced',
+                        style: TextStyle(
+                          color: Color(0xFF667085),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        lastSeen,
+                        style: const TextStyle(
+                          color: Color(0xFF111827),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.w(context, 0.035),
+                    vertical: Responsive.h(context, 0.012),
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFFEAF8EE),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 18),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         battery > 20
-                            ? Icons.battery_full
-                            : Icons.battery_alert,
-                        size: 17,
+                            ? Icons.battery_full_rounded
+                            : Icons.battery_alert_rounded,
+                        size: Responsive.w(context, 0.06),
                         color: battery > 20
-                            ? Colors.green.shade700
-                            : Colors.red,
+                            ? const Color(0xFF35B85A)
+                            : const Color(0xFFE04444),
                       ),
-                      const SizedBox(width: 5),
-                      Text(
-                        '$battery%',
-                        style: const TextStyle(
-                          color: Color(0xFF374151),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+
+                      SizedBox(
+                        width: Responsive.w(context, 0.02),
+                      ),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$battery%',
+                            style: const TextStyle(
+                              color: Color(0xFF172033),
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Text(
+                            'Battery',
+                            style: TextStyle(
+                              color: Color(0xFF667085),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

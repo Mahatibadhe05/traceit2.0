@@ -96,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (_) => const AddDeviceScreen(),
+        builder: (_) => AddDeviceScreen(
+          savedDevices: devices,
+        ),
       ),
     );
 
@@ -159,8 +161,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [
+              0.0,
+              0.38,
+              1.0,
+            ],
+            colors: [
+              Color(0xFFEAF4FF),
+              Color(0xFFF8FBFF),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
             horizontal: Responsive.w(context, 0.03),
@@ -176,21 +195,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
               SizedBox(height: Responsive.h(context, 0.025)),
 
-              Align(
-                alignment: Alignment.centerLeft,
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Responsive.w(context, 0.045),
+                  vertical: Responsive.h(context, 0.018),
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFEAF2FF),
+                      Color(0xFFF4F0FF),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    Responsive.radius(context, 22),
+                  ),
+                  border: Border.all(
+                    color: const Color(0xFFE2E9F8),
+                    width: 1,
+                  ),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "${getGreeting()}, $userName",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.sectionTitle(context).copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontSize: Responsive.font(context, 4.8),
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF111827),
                       ),
                     ),
-                    SizedBox(height: Responsive.h(context, 0.005)),
+
+                    SizedBox(
+                      height: Responsive.h(context, 0.007),
+                    ),
+
                     Text(
                       getSubtitle(),
-                      style: AppTextStyles.subtitle(context),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.subtitle(context).copyWith(
+                        fontSize: Responsive.font(context, 3.2),
+                        color: const Color(0xFF667085),
+                      ),
                     ),
                   ],
                 ),
@@ -260,6 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
             ],
+          ),
           ),
         ),
       ),

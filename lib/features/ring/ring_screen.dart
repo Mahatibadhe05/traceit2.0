@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../../models/device_model.dart';
-import '../../core/widgets/primary_button.dart';
+
+const Color _blue = Color(0xFF2563EB);
+const Color _textDark = Color(0xFF17233B);
+const Color _textGrey = Color(0xFF667085);
+const Color _softBlue = Color(0xFFF4F8FF);
 
 class RingScreen extends StatefulWidget {
   final DeviceModel device;
@@ -20,9 +22,11 @@ class RingScreen extends StatefulWidget {
 
 class _RingScreenState extends State<RingScreen>
     with SingleTickerProviderStateMixin {
-  bool isRinging = true;
-
   late AnimationController _animationController;
+
+  void _stopRinging() {
+    _animationController.stop();
+  }
 
   @override
   void initState() {
@@ -45,75 +49,150 @@ class _RingScreenState extends State<RingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: const Color(0xFFFCFDFF),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(Responsive.w(context, 0.08)),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  shape: BoxShape.circle,
-                ),
-                child: AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final scale = isRinging
-                        ? 1.0 + (_animationController.value * 0.12)
-                        : 1.0;
-                
-                    return Transform.scale(
-                      scale: scale,
-                      child: Icon(
-                        isRinging
-                            ? Icons.notifications_active
-                            : Icons.notifications_none,
-                        size: Responsive.w(context, 0.25),
-                        color: isRinging ? Colors.blue : Colors.grey,
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.w(context, 0.04),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: _textDark,
+                    ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+
+                  SizedBox(
+                    width: Responsive.w(context, 0.035),
+                  ),
+
+                  Text(
+                    "Ring Device",
+                    style: TextStyle(
+                      color: _textDark,
+                      fontSize: Responsive.font(context, 5.0),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Responsive.w(context, 0.055),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // RINGING STATE
+                      AnimatedBuilder(
+                        animation: _animationController,
+                        builder: (context, child) {
+                          final scale = 1.0 + (_animationController.value * 0.12);
+                          
+                          return Transform.scale(
+                            scale: scale,
+                            child: Container(
+                              width: Responsive.w(context, 0.30),
+                              height: Responsive.w(context, 0.30),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _softBlue,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _blue.withOpacity(0.08),
+                                    blurRadius: 24,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.notifications_active_rounded,
+                                color: _blue,
+                                size: Responsive.w(context, 0.15),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                      
+                      SizedBox(
+                        height: Responsive.h(context, 0.035),
+                      ),
+
+                      Text(
+                        "Ringing ${widget.device.name}...",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _textDark,
+                          fontSize: Responsive.font(context, 5.2),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: Responsive.h(context, 0.012),
+                      ),
+
+                      Text(
+                        "Playing sound on your device",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _textGrey,
+                          fontSize: Responsive.font(context, 3.4),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: Responsive.h(context, 0.045),
+                      ),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: Responsive.h(context, 0.065),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _stopRinging();
+                            if (mounted) {
+                              Navigator.pop(context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _blue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            "Stop Ringing",
+                            style: TextStyle(
+                              fontSize: Responsive.font(context, 3.7),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: Responsive.h(context, 0.05)),
-              Text(
-                isRinging
-                    ? "Ringing ${widget.device.name}..."
-                    : "Ring stopped",
-                style: AppTextStyles.heading(context),
-              ),
-              SizedBox(height: Responsive.h(context, 0.08)),
-              SizedBox(
-                width: Responsive.w(context, 0.6),
-                child: PrimaryButton(
-                  text: isRinging ? "Stop Ringing" : "Close",
-                  onPressed: () {
-                    if (isRinging) {
-                      setState(() {
-                        isRinging = false;
-                      });
-                    
-                      _animationController.stop();
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

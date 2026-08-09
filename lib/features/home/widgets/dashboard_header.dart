@@ -24,14 +24,22 @@ class DashboardHeader extends StatelessWidget {
           children: [
             Text(
               hasDevice ? "My Devices" : "Welcome to TraceIt",
-              style: AppTextStyles.heading(context),
+              maxLines: 1,
+              style: AppTextStyles.heading(context).copyWith(
+                fontSize: Responsive.font(context, 6.2),
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF17233B),
+              ),
             ),
-            SizedBox(height: Responsive.h(context, 0.005)),
+            SizedBox(height: Responsive.h(context, 0.008)),
             Text(
               hasDevice
                   ? "Track and protect what matters."
                   : "Never lose what matters.",
-              style: AppTextStyles.subtitle(context),
+              style: AppTextStyles.subtitle(context).copyWith(
+                fontSize: Responsive.font(context, 3.3),
+                color: const Color(0xFF667085),
+              ),
             ),
           ],
         ),
@@ -40,15 +48,23 @@ class DashboardHeader extends StatelessWidget {
           GestureDetector(
             onTap: onAddDevice,
             child: Container(
-              width: 44,
-              height: 44,
+              width: Responsive.w(context, 0.095),
+              height: Responsive.w(context, 0.095),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.22),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.add,
                 color: Colors.white,
+                size: Responsive.w(context, 0.055),
               ),
             ),
           ),

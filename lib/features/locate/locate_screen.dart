@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../../models/device_model.dart';
-import '../../core/widgets/primary_button.dart';
+
+const Color _blue = Color(0xFF2563EB);
+const Color _lightBlue = Color(0xFFEAF2FF);
+const Color _textDark = Color(0xFF17233B);
+const Color _textGrey = Color(0xFF667085);
 
 class LocateScreen extends StatefulWidget {
   final DeviceModel device;
@@ -19,10 +23,11 @@ class LocateScreen extends StatefulWidget {
 }
 
 class _LocateScreenState extends State<LocateScreen> {
-  bool isRefreshing = false;
   bool bleAvailable = true;
+
   late double rssi;
   late String proximityStatus;
+
   String gpsStatus = "Location unavailable";
 
   @override
@@ -31,19 +36,6 @@ class _LocateScreenState extends State<LocateScreen> {
 
     rssi = widget.device.rssi.toDouble();
     proximityStatus = _getProximityStatus(rssi);
-  }
-
-  void _simulateBleLoss() {
-    setState(() {
-      bleAvailable = !bleAvailable;
-
-      if (!bleAvailable) {
-        gpsStatus = "GPS/GSM location available";
-      } else {
-        rssi = widget.device.rssi.toDouble();
-        proximityStatus = _getProximityStatus(rssi);
-      }
-    });
   }
 
   String _getProximityStatus(double rssi) {
@@ -58,188 +50,480 @@ class _LocateScreenState extends State<LocateScreen> {
     }
   }
 
-  String get _locationMode {
+  String get locationMode {
     return bleAvailable ? "BLE Proximity" : "GPS / GSM";
   }
 
   @override
   Widget build(BuildContext context) {
+    final deviceName = widget.device.name;
+    final imagePath = widget.device.imagePath;
+    final connected = widget.device.connected;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(widget.device.name, style: AppTextStyles.heading(context)),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFEAF3FF),
+              Color(0xFFF7FAFF),
+              Colors.white,
+            ],
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Container(
-                margin: EdgeInsets.all(Responsive.w(context, 0.04)),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(Responsive.radius(context, 20)),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: Responsive.w(context, 0.28),
-                          height: Responsive.w(context, 0.28),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.blue.shade50,
-                          ),
-                          child: Icon(
-                            Icons.location_on,
-                            size: Responsive.w(context, 0.13),
-                            color: Colors.blue,
-                          ),
-                        ),
-                
-                        SizedBox(
-                          height: Responsive.h(context, 0.018),
-                        ),
-                
-                        Text(
-                          bleAvailable ? proximityStatus : "BLE Out of Range",
-                          style: TextStyle(
-                            fontSize: Responsive.font(context, 0.042),
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
-                          ),
-                        ),
-                
-                        SizedBox(
-                          height: Responsive.h(context, 0.008),
-                        ),
-                
-                        Text(
-                          bleAvailable
-                              ? "RSSI: ${rssi.toStringAsFixed(0)} dBm"
-                              : gpsStatus,
-                          style: AppTextStyles.subtitle(context),
-                        ),
-
-                        SizedBox(
-                          height: Responsive.h(context, 0.005),
-                        ),
-
-                        Text(
-                          _locationMode,
-                          style: TextStyle(
-                            color: Colors.blue.shade700,
-                            fontSize: Responsive.font(context, 0.035),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(
+              horizontal: Responsive.w(context, 0.055),
+              vertical: Responsive.h(context, 0.02),
             ),
-            Expanded(
-              flex: 3,
-              child: Container(
-                padding: EdgeInsets.all(Responsive.w(context, 0.06)),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(Responsive.radius(context, 30))),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
-                ),
-                child: Column(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // HEADER
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStat(context, Icons.battery_full, "Battery", "${widget.device.battery}%", Colors.green),
-                        _buildStat(context, Icons.network_wifi, "Signal", widget.device.signal, Colors.blue),
-                        _buildStat(
-                          context,
-                          bleAvailable ? Icons.bluetooth : Icons.gps_fixed,
-                          bleAvailable ? "Proximity" : "Location",
-                          bleAvailable ? proximityStatus : "GPS/GSM",
-                          bleAvailable ? Colors.blue : Colors.green,
-                        ),
-                        _buildStat(context, Icons.access_time, "Last Seen", widget.device.lastSeen, Colors.purple),
-                      ],
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: _textDark,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    SizedBox(height: Responsive.h(context, 0.05)),
-                    PrimaryButton(
-                      text: isRefreshing
-                          ? "Updating..."
-                          : "Refresh Location",
-                      onPressed: isRefreshing
-                          ? null
-                          : () {
-                              setState(() {
-                                isRefreshing = true;
-                              });
-                    
-                              Future.delayed(
-                                const Duration(seconds: 1),
-                              ).then((_) {
-                                if (!mounted) return;
-                    
-                                setState(() {
-                                  // Temporary RSSI simulation.
-                                  // Later this will come from the real BLE scanner.
-                                  rssi = widget.device.rssi.toDouble();
-                                  proximityStatus = _getProximityStatus(rssi);
-                    
-                                  isRefreshing = false;
-                                });
-                              });
-                            },
-                    ),
+
                     SizedBox(
-                      height: Responsive.h(context, 0.02),
+                      width: Responsive.w(context, 0.04),
                     ),
-                    OutlinedButton.icon(
-                      onPressed: _simulateBleLoss,
-                      icon: Icon(
-                        bleAvailable ? Icons.bluetooth_disabled : Icons.bluetooth,
-                      ),
-                      label: Text(
-                        bleAvailable
-                            ? "Simulate BLE Out of Range"
-                            : "Simulate BLE Back in Range",
+
+                    Expanded(
+                      child: Text(
+                        "Locate Device",
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 5.8),
+                          fontWeight: FontWeight.w700,
+                          color: _textDark,
+                        ),
                       ),
                     ),
-                    SizedBox(height: Responsive.h(context, 0.02)),
+
+                    const Icon(
+                      Icons.more_vert_rounded,
+                      color: _textDark,
+                    ),
                   ],
                 ),
-              ),
+
+                SizedBox(
+                  height: Responsive.h(context, 0.02),
+                ),
+
+                // MAP
+                _buildMapPreview(context),
+
+                SizedBox(
+                  height: Responsive.h(context, 0.018),
+                ),
+
+                // RSSI / PROXIMITY
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(
+                    Responsive.w(context, 0.04),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFE6ECF5),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: Responsive.w(context, 0.11),
+                                height: Responsive.w(context, 0.11),
+                                decoration: BoxDecoration(
+                                  color: _lightBlue,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.bluetooth_rounded,
+                                  color: _blue,
+                                ),
+                              ),
+
+                              SizedBox(
+                                width: Responsive.w(context, 0.03),
+                              ),
+
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "BLE Signal",
+                                    style: TextStyle(
+                                      color: _textGrey,
+                                      fontSize: Responsive.font(context, 3.1),
+                                    ),
+                                  ),
+
+                                  SizedBox(
+                                    height: Responsive.h(context, 0.003),
+                                  ),
+
+                                  Text(
+                                    proximityStatus,
+                                    style: TextStyle(
+                                      color: _textDark,
+                                      fontSize: Responsive.font(context, 4.1),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          Text(
+                            "${rssi.toInt()} dBm",
+                            style: TextStyle(
+                              color: _blue,
+                              fontSize: Responsive.font(context, 4.0),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(
+                        height: Responsive.h(context, 0.018),
+                      ),
+
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: ((rssi + 100) / 70).clamp(0.0, 1.0),
+                          minHeight: 7,
+                          backgroundColor: const Color(0xFFE8EDF5),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            _blue,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: Responsive.h(context, 0.012),
+                      ),
+
+                      Text(
+                        bleAvailable
+                            ? "Bluetooth proximity is active"
+                            : "BLE unavailable • Using GPS / GSM",
+                        style: TextStyle(
+                          color: _textGrey,
+                          fontSize: Responsive.font(context, 3.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SizedBox(
+                  height: Responsive.h(context, 0.025),
+                ),
+
+                // REFRESH BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  height: Responsive.h(context, 0.065),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        rssi = widget.device.rssi.toDouble();
+                        proximityStatus =
+                            _getProximityStatus(rssi);
+                      });
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text(
+                      "Refresh Location",
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStat(BuildContext context, IconData icon, String label, String value, Color color) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: Responsive.w(context, 0.06),
-          backgroundColor: color.withOpacity(0.1),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        SizedBox(height: Responsive.h(context, 0.01)),
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: Responsive.font(context, 0.035))),
-        Text(label, style: TextStyle(color: Colors.grey, fontSize: Responsive.font(context, 0.03))),
-      ],
+  Widget _statusPill(
+    BuildContext context,
+    bool connected,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(context, 0.04),
+        vertical: Responsive.h(context, 0.009),
+      ),
+      decoration: BoxDecoration(
+        color: connected
+            ? const Color(0xFFE4F7EA)
+            : const Color(0xFFFEECEC),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: Responsive.w(context, 0.018),
+            height: Responsive.w(context, 0.018),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: connected
+                  ? const Color(0xFF2DB55D)
+                  : Colors.red,
+            ),
+          ),
+
+          SizedBox(
+            width: Responsive.w(context, 0.02),
+          ),
+
+          Text(
+            connected ? "Connected" : "Disconnected",
+            style: TextStyle(
+              color: connected
+                  ? const Color(0xFF239447)
+                  : Colors.red,
+              fontSize: Responsive.font(context, 3.4),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+  Widget _infoCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(context, 0.04),
+        vertical: Responsive.h(context, 0.018),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFFE6ECF5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: Responsive.w(context, 0.105),
+            height: Responsive.w(context, 0.105),
+            decoration: BoxDecoration(
+              color: _lightBlue,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: Responsive.w(context, 0.055),
+            ),
+          ),
+
+          SizedBox(
+            width: Responsive.w(context, 0.035),
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: _textGrey,
+                    fontSize: Responsive.font(context, 3.2),
+                  ),
+                ),
+                SizedBox(
+                  height: Responsive.h(context, 0.004),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _textDark,
+                    fontSize: Responsive.font(context, 4.0),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapPreview(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: Responsive.h(context, 0.34),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xFFEAF2FF),
+        border: Border.all(
+          color: const Color(0xFFD5E4FF),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _MapGridPainter(),
+            ),
+          ),
+
+          Center(
+            child: Container(
+              width: Responsive.w(context, 0.18),
+              height: Responsive.w(context, 0.18),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _blue.withOpacity(0.12),
+              ),
+              child: Center(
+                child: Container(
+                  width: Responsive.w(context, 0.075),
+                  height: Responsive.w(context, 0.075),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _blue,
+                  ),
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 16,
+            left: 16,
+            child: _mapLabel(
+              context,
+              "Live location",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mapLabel(
+    BuildContext context,
+    String text,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(context, 0.03),
+        vertical: Responsive.h(context, 0.009),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: _textDark,
+          fontSize: Responsive.font(context, 3.2),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _MapGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFFD5E4FF)
+      ..strokeWidth = 1.0;
+
+    for (double i = 0; i < size.width; i += 20) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+    for (double i = 0; i < size.height; i += 20) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

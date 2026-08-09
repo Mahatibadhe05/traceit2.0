@@ -19,57 +19,66 @@ class StatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        height: Responsive.h(context, 0.085),
-        padding: EdgeInsets.symmetric(
-          horizontal: Responsive.w(context, 0.04),
-        ),
-        decoration: BoxDecoration(
-          color: color.withOpacity(.08),
-          borderRadius: BorderRadius.circular(
-            Responsive.radius(context, 16),
-          ),
-          border: Border.all(
-            color: color.withOpacity(.15),
-          ),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: Responsive.w(context, 0.045),
-              backgroundColor: color.withOpacity(.15),
-              child: Icon(
-                icon,
-                color: color,
-                size: Responsive.w(context, 0.05),
-              ),
-            ),
-
-            SizedBox(width: Responsive.w(context, 0.03)),
-
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: AppTextStyles.heading(context).copyWith(
-                      fontSize: Responsive.font(context, 0.04),
-                    ),
-                  ),
-                  Text(
-                    title,
-                    style: AppTextStyles.subtitle(context).copyWith(
-                      fontSize: Responsive.font(context, 0.028),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return Container(
+      height: Responsive.h(context, 0.12),
+      padding: EdgeInsets.symmetric(
+        horizontal: Responsive.w(context, 0.05),
+      ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.12),
+            color.withOpacity(0.04),
           ],
         ),
+        borderRadius: BorderRadius.circular(
+          Responsive.radius(context, 18),
+        ),
+        border: Border.all(
+          color: color.withOpacity(0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: Responsive.w(context, 0.045),
+            backgroundColor: color.withOpacity(0.10),
+            child: Icon(
+              icon,
+              color: color,
+              size: Responsive.w(context, 0.05),
+            ),
+          ),
+
+          SizedBox(
+            width: Responsive.w(context, 0.03),
+          ),
+
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: AppTextStyles.heading(context).copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  title,
+                  style: AppTextStyles.subtitle(context).copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

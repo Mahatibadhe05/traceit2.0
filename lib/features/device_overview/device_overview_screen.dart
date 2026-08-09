@@ -10,6 +10,15 @@ import '../locate/locate_screen.dart';
 import '../ring/ring_screen.dart';
 import '../device_information/device_information_screen.dart';
 
+const Color _blue = Color(0xFF2563EB);
+const Color _lightBlue = Color(0xFFEAF2FF);
+const Color _textDark = Color(0xFF17233B);
+const Color _textGrey = Color(0xFF667085);
+
+const Color _cardBlueStart = Color(0xFFFCFDFF);
+const Color _cardBlueEnd = Color(0xFFF8FAFF);
+const Color _cardBlueSoft = Color(0xFFF8FAFF);
+
 class DeviceOverviewScreen extends StatelessWidget {
   final DeviceModel device;
   final VoidCallback? onDelete;
@@ -45,76 +54,115 @@ class DeviceOverviewScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(
-        Responsive.radius(context, 18),
-      ),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(
-          Responsive.w(context, 0.05),
+        padding: EdgeInsets.symmetric(
+          horizontal: Responsive.w(context, 0.025),
+          vertical: Responsive.h(context, 0.018),
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(
-            Responsive.radius(context, 18),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFCFDFF),
+              Color(0xFFF8FAFF),
+            ],
           ),
-          boxShadow: const [
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFE6EDF8),
+            width: 1,
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: Offset(0, 3),
+              color: Colors.black.withOpacity(0.018),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
           children: [
-  
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: color.withOpacity(0.12),
+            Container(
+              width: Responsive.w(context, 0.085),
+              height: Responsive.w(context, 0.085),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF0F5FF),
+                shape: BoxShape.circle,
+              ),
               child: Icon(
                 icon,
-                color: color,
+                color: _blue,
+                size: Responsive.w(context, 0.045),
               ),
             ),
-  
-            SizedBox(width: Responsive.w(context, 0.04)),
-  
+
+            SizedBox(
+              width: Responsive.w(context, 0.022),
+            ),
+
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-  
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _textDark,
+                      fontSize: Responsive.font(context, 3.5),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-  
-                  const SizedBox(height: 4),
-  
+
+                  SizedBox(
+                    height: Responsive.h(context, 0.003),
+                  ),
+
                   Text(
                     subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 13,
+                      color: _textGrey,
+                      fontSize: Responsive.font(context, 2.7),
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
               ),
             ),
-  
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 18,
-              color: Colors.grey,
+
+            Icon(
+              Icons.chevron_right_rounded,
+              color: const Color(0xFF98A2B3),
+              size: Responsive.w(context, 0.055),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  LinearGradient _cardGradient({
+    bool stronger = false,
+  }) {
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: stronger
+          ? const [
+              _cardBlueStart,
+              _cardBlueEnd,
+            ]
+          : const [
+              Colors.white,
+              _cardBlueSoft,
+            ],
     );
   }
 
@@ -178,103 +226,220 @@ class DeviceOverviewScreen extends StatelessWidget {
         child: Column(
           children: [
 
-            AnimatedScale(
-              duration: const Duration(milliseconds: 500),
-              scale: 1,
-              child: CircularPercentIndicator(
-              radius: Responsive.w(context, 0.17),
-              lineWidth: 6,
-              percent: device.battery / 100,
-              animation: true,
-              animationDuration: 1000,
-              circularStrokeCap: CircularStrokeCap.round,
-              progressColor: device.battery > 60
-                  ? Colors.green
-                  : device.battery > 25
-                      ? Colors.orange
-                      : Colors.red,
-              backgroundColor: Colors.grey.shade200,
-            
-              center: CircleAvatar(
-                radius: Responsive.w(context, 0.15),
-                backgroundColor: Colors.blue.shade50,
-                backgroundImage:
-                    device.imagePath != null && device.imagePath!.isNotEmpty
-                        ? FileImage(File(device.imagePath!))
-                        : null,
-                child: device.imagePath == null || device.imagePath!.isEmpty
-                    ? Icon(
-                        Icons.devices,
-                        size: Responsive.w(context, 0.15),
-                        color: Colors.blue,
-                      )
-                    : null,
-              ),
-            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Device image + soft glow
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Soft outer glow
+                    Container(
+                      width: Responsive.w(context, 0.31),
+                      height: Responsive.w(context, 0.31),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: _blue.withOpacity(0.10),
+                            blurRadius: 22,
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Device image
+                    Container(
+                      width: Responsive.w(context, 0.27),
+                      height: Responsive.w(context, 0.27),
+                      padding: EdgeInsets.all(
+                        Responsive.w(context, 0.012),
+                      ),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: const Color(0xFF35B96B),
+                          width: Responsive.w(context, 0.009),
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: device.imagePath != null &&
+                                device.imagePath!.isNotEmpty
+                            ? Image.file(
+                                File(device.imagePath!),
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: _lightBlue,
+                                child: Icon(
+                                  getDeviceIcon(device.name),
+                                  color: _blue,
+                                  size: Responsive.w(context, 0.10),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Space between image and text
+                SizedBox(
+                  width: Responsive.w(context, 0.065),
+                ),
+
+                // Device information
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        device.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _textDark,
+                          fontSize: Responsive.font(context, 5.0),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: Responsive.h(context, 0.012),
+                      ),
+
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.w(context, 0.028),
+                          vertical: Responsive.h(context, 0.007),
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE4F7EA),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: Responsive.w(context, 0.018),
+                              height: Responsive.w(context, 0.018),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF2DB55D),
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: Responsive.w(context, 0.018),
+                            ),
+
+                            Text(
+                              device.connected ? "Connected" : "Disconnected",
+                              style: TextStyle(
+                                color: device.connected
+                                    ? const Color(0xFF239447)
+                                    : Colors.red,
+                                fontSize: Responsive.font(context, 3.2),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             
             SizedBox(
               height: Responsive.h(context, 0.025),
             ),
+
+            SizedBox(height: Responsive.h(context, 0.055)),
             
-            Text(
-              device.name,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1F2937),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Quick Actions",
+                style: TextStyle(
+                  color: Color(0xFF17233B),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
             
             SizedBox(
-              height: Responsive.h(context, 0.015),
+              height: Responsive.h(context, 0.012),
+            ),
+            
+            Row(
+              children: [
+                Expanded(
+                  child: actionCard(
+                    context: context,
+                    icon: Icons.volume_up_rounded,
+                    color: _blue,
+                    title: "Ring",
+                    subtitle: "Play sound",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RingScreen(device: device),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            
+                SizedBox(
+                  width: Responsive.w(context, 0.025),
+                ),
+            
+                Expanded(
+                  child: actionCard(
+                    context: context,
+                    icon: Icons.location_on_rounded,
+                    color: _blue,
+                    title: "Locate",
+                    subtitle: "Find device",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LocateScreen(device: device),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
 
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: device.connected ? Colors.green.shade100 : Colors.red.shade100,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.circle,
-                    color: device.connected ? Colors.green.shade700 : Colors.red.shade700,
-                    size: 10,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    device.connected ? "Connected" : "Disconnected",
-                    style: TextStyle(
-                      color: device.connected ? Colors.green.shade700 : Colors.red.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: Responsive.h(context, 0.04)),
+            SizedBox(height: Responsive.h(context, 0.03)),
             
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 18,
+              ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: _cardGradient(),
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
+                border: Border.all(
+                  color: const Color(0xFFE9EEF7),
+                  width: 1,
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
+                    color: Colors.black.withOpacity(0.018),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -301,13 +466,13 @@ class DeviceOverviewScreen extends StatelessWidget {
                     ],
                   ),
             
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 7),
             
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
                       value: device.battery / 100,
-                      minHeight: 7,
+                      minHeight: 5,
                       backgroundColor: const Color(0xFFE5E7EB),
                     ),
                   ),
@@ -315,19 +480,28 @@ class DeviceOverviewScreen extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: Responsive.h(context, 0.03)),
+            SizedBox(
+              height: Responsive.h(context, 0.018),
+            ),
 
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 18,
+              ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: _cardGradient(),
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: const [
+                border: Border.all(
+                  color: const Color(0xFFE9EEF7),
+                  width: 1,
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
+                    color: Colors.black.withOpacity(0.018),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -342,7 +516,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                     ),
                   ),
             
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
             
                   _StatusRow(
                     icon: Icons.bluetooth,
@@ -352,7 +526,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                         : "Disconnected",
                   ),
             
-                  const Divider(height: 22),
+                  const Divider(height: 14),
             
                   _StatusRow(
                     icon: Icons.network_wifi,
@@ -360,7 +534,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                     value: device.signal,
                   ),
             
-                  const Divider(height: 22),
+                  const Divider(height: 14),
             
                   _StatusRow(
                     icon: Icons.location_on_outlined,
@@ -369,52 +543,6 @@ class DeviceOverviewScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            
-            SizedBox(height: Responsive.h(context, 0.035)),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Quick Actions",
-                style: AppTextStyles.sectionTitle(context),
-              ),
-            ),
-            
-            SizedBox(height: Responsive.h(context, 0.02)),
-            
-            actionCard(
-              context: context,
-              icon: Icons.volume_up,
-              color: Colors.blue,
-              title: "Ring Device",
-              subtitle: "Play a sound to locate your tracker",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => RingScreen(device: device),
-                  ),
-                );
-              },
-            ),
-            
-            SizedBox(height: Responsive.h(context, 0.018)),
-            
-            actionCard(
-              context: context,
-              icon: Icons.location_on,
-              color: Colors.green,
-              title: "Locate Device",
-              subtitle: "View live location and proximity",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LocateScreen(device: device),
-                  ),
-                );
-              },
             ),
             
             const SizedBox(height: 24),
@@ -451,13 +579,24 @@ class DeviceOverviewScreen extends StatelessWidget {
                   vertical: 17,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white,
+                      Color(0xFFF7FAFF),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
+                  border: Border.all(
+                    color: const Color(0xFFE9EEF7),
+                    width: 1,
+                  ),
+                  boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 7,
-                      offset: Offset(0, 3),
+                      color: Colors.black.withOpacity(0.018),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),

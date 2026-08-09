@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/device_model.dart';
+import '../../core/utils/responsive.dart';
 
 class DeviceInformationScreen extends StatelessWidget {
   final DeviceModel device;
@@ -115,11 +116,15 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        border: Border.all(
+          color: const Color(0xFFE9EEF7),
+          width: 1,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 7,
-            offset: Offset(0, 3),
+            color: Colors.black.withOpacity(0.018),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -139,22 +144,25 @@ class _InfoCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
+                  style: TextStyle(
+                    color: const Color(0xFF98A2B3),
+                    fontSize: Responsive.font(context, 2.7),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                SizedBox(
+                  height: Responsive.h(context, 0.004),
+                ),
 
                 Text(
                   value,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    color: const Color(0xFF17233B),
+                    fontSize: Responsive.font(context, 3.2),
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
                   ),
                 ),
               ],

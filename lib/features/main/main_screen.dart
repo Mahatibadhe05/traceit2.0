@@ -23,7 +23,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ),
     ),
-    const Center(child: Text("Notifications")),
+    const Center(child: Text("Alerts")),
     const Center(child: Text("Settings")),
   ];
 
@@ -32,32 +32,62 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
-        indicatorColor: Colors.blue.shade100,
+        backgroundColor: Colors.white,
+        indicatorColor: const Color(0xFFE3F0FF),
         selectedIndex: _currentIndex,
+
         onDestinationSelected: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
+
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(
+              Icons.dashboard_outlined,
+              color: Color(0xFF526A8A),
+            ),
+            selectedIcon: Icon(
+              Icons.dashboard,
+              color: Color(0xFF1769E0),
+            ),
             label: 'Dashboard',
           ),
+
           NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on),
+            icon: Icon(
+              Icons.location_on_outlined,
+              color: Color(0xFF526A8A),
+            ),
+            selectedIcon: Icon(
+              Icons.location_on,
+              color: Color(0xFF1769E0),
+            ),
             label: 'Locate',
           ),
+
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: 'Notifications',
+            icon: Icon(
+              Icons.notifications_none_rounded,
+              color: Color(0xFF526A8A),
+            ),
+            selectedIcon: Icon(
+              Icons.notifications_rounded,
+              color: Color(0xFF1769E0),
+            ),
+            label: 'Alerts',
           ),
+
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: Color(0xFF526A8A),
+            ),
+            selectedIcon: Icon(
+              Icons.settings,
+              color: Color(0xFF1769E0),
+            ),
             label: 'Settings',
           ),
         ],
