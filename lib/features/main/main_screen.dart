@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../home/home_screen.dart';
+import '../settings/settings_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
     ),
     const Center(child: Text("Alerts")),
-    const Center(child: Text("Settings")),
+    const SettingsPage(),
   ];
 
   @override
