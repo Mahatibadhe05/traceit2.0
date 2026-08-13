@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'responsive.dart';
 import 'alert_details_screen.dart';
-import '../utils/responsive.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -18,8 +18,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
       'device': 'Backpack',
       'time': '2 min ago',
       'type': 'Moving Away',
-      'icon': Icons.notifications,
-      'color': const Color(0xFFFF4F4F),
+      'icon': Icons.directions_walk,
+      'color': const Color(0xFFFF5252),
     },
     {
       'title': 'Left Behind Alert',
@@ -34,15 +34,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
       'device': 'Wallet',
       'time': '3 hours ago',
       'type': 'Connection Lost',
-      'icon': Icons.notifications,
-      'color': const Color(0xFFFF4F4F),
+      'icon': Icons.bluetooth_disabled,
+      'color': const Color(0xFFFF5252),
     },
     {
       'title': 'Low Battery Alert',
       'device': 'Glasses',
       'time': '1 day ago',
       'type': 'Low Battery',
-      'icon': Icons.remove_red_eye,
+      'icon': Icons.battery_alert,
       'color': const Color(0xFF0084BB),
     },
   ];
@@ -58,6 +58,14 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   void showFilterMenu() {
+    final filters = [
+      'All',
+      'Moving Away',
+      'Left Behind',
+      'Connection Lost',
+      'Low Battery',
+    ];
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -65,23 +73,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(
-            Responsive.radius(context, 0.06),
+            Responsive.radius(context, 24),
           ),
         ),
       ),
       builder: (context) {
-        final filters = [
-          'All',
-          'Moving Away',
-          'Left Behind',
-          'Connection Lost',
-          'Low Battery',
-        ];
-
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              vertical: Responsive.h(context, 0.018),
+              vertical: Responsive.h(context, 0.02),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -89,41 +89,36 @@ class _AlertsScreenState extends State<AlertsScreen> {
                 Text(
                   'Filter Alerts',
                   style: TextStyle(
-                    fontSize: Responsive.font(context, 4.6),
+                    fontSize: Responsive.font(context, 20),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 SizedBox(
-                  height: Responsive.h(context, 0.012),
+                  height: Responsive.h(context, 0.01),
                 ),
-
                 ...filters.map(
-                  (filter) => ListTile(
-                    title: Text(
-                      filter,
-                      style: TextStyle(
-                        fontSize:
-                            Responsive.font(context, 3.8),
+                  (filter) {
+                    return ListTile(
+                      title: Text(
+                        filter,
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 15),
+                        ),
                       ),
-                    ),
-
-                    trailing: selectedFilter == filter
-                        ? Icon(
-                            Icons.check,
-                            color: const Color(0xFF6C63FF),
-                            size: Responsive.w(context, 0.06),
-                          )
-                        : null,
-
-                    onTap: () {
-                      setState(() {
-                        selectedFilter = filter;
-                      });
-
-                      Navigator.pop(context);
-                    },
-                  ),
+                      trailing: selectedFilter == filter
+                          ? const Icon(
+                              Icons.check,
+                              color: Color(0xFF6C63FF),
+                            )
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          selectedFilter = filter;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
                 ),
               ],
             ),
@@ -138,11 +133,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => AlertDetailsScreen(
-          title: alert['title'],
-          device: alert['device'],
-          time: alert['time'],
-          icon: alert['icon'],
-          iconColor: alert['color'],
+          title: alert['title'] as String,
+          device: alert['device'] as String,
+          time: alert['time'] as String,
+          icon: alert['icon'] as IconData,
+          iconColor: alert['color'] as Color,
         ),
       ),
     );
@@ -156,32 +151,33 @@ class _AlertsScreenState extends State<AlertsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
         title: Text(
           'Alerts',
           style: TextStyle(
             color: const Color(0xFF1E293B),
-            fontSize: Responsive.font(context, 6),
+            fontSize: Responsive.font(context, 24),
             fontWeight: FontWeight.bold,
           ),
         ),
-
         actions: [
-          TextButton.icon(
-            onPressed: showFilterMenu,
-
-            icon: Icon(
-              Icons.filter_alt_outlined,
-              size: Responsive.w(context, 0.046),
-              color: const Color(0xFF6C63FF),
+          Padding(
+            padding: EdgeInsets.only(
+              right: Responsive.w(context, 0.02),
             ),
-
-            label: Text(
-              'Filter',
-              style: TextStyle(
+            child: TextButton.icon(
+              onPressed: showFilterMenu,
+              icon: Icon(
+                Icons.filter_alt_outlined,
+                size: Responsive.w(context, 0.045),
                 color: const Color(0xFF6C63FF),
-                fontWeight: FontWeight.bold,
-                fontSize: Responsive.font(context, 3.5),
+              ),
+              label: Text(
+                'Filter',
+                style: TextStyle(
+                  color: const Color(0xFF6C63FF),
+                  fontSize: Responsive.font(context, 13),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -189,213 +185,216 @@ class _AlertsScreenState extends State<AlertsScreen> {
       ),
 
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.w(context, 0.05),
-            vertical: Responsive.h(context, 0.025),
-          ),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 1000,
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: Responsive.w(context, 0.05),
+                vertical: Responsive.h(context, 0.025),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'All Alerts',
-                    style: TextStyle(
-                      fontSize: Responsive.font(context, 4.1),
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E293B),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  if (selectedFilter != 'All')
-                    Flexible(
-                      child: Text(
-                        selectedFilter,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-
+                  Row(
+                    children: [
+                      Text(
+                        'All Alerts',
                         style: TextStyle(
-                          fontSize:
-                              Responsive.font(context, 3.1),
-                          color: const Color(0xFF6C63FF),
-                          fontWeight: FontWeight.w600,
+                          fontSize: Responsive.font(context, 17),
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E293B),
                         ),
                       ),
-                    ),
-                ],
-              ),
 
-              SizedBox(
-                height: Responsive.h(context, 0.018),
-              ),
+                      const Spacer(),
 
-              Expanded(
-                child: filteredAlerts.isEmpty
-                    ? Center(
+                      if (selectedFilter != 'All')
+                        Flexible(
+                          child: Text(
+                            selectedFilter,
+                            textAlign: TextAlign.right,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: Responsive.font(context, 12),
+                              color: const Color(0xFF6C63FF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  SizedBox(
+                    height: Responsive.h(context, 0.02),
+                  ),
+
+                  if (filteredAlerts.isEmpty)
+                    SizedBox(
+                      height: Responsive.h(context, 0.5),
+                      child: Center(
                         child: Text(
                           'No alerts found',
                           style: TextStyle(
                             color: Colors.grey,
-                            fontSize:
-                                Responsive.font(context, 3.8),
+                            fontSize: Responsive.font(context, 15),
                           ),
                         ),
-                      )
-                    : ListView.builder(
-                        physics:
-                            const BouncingScrollPhysics(),
-
-                        itemCount: filteredAlerts.length,
-
-                        itemBuilder: (context, index) {
-                          final alert =
-                              filteredAlerts[index];
-
-                          return _alertCard(
-                            icon: alert['icon'],
-                            iconColor: alert['color'],
-                            title: alert['title'],
-                            device: alert['device'],
-                            time: alert['time'],
-                            onTap: () =>
-                                openAlertDetails(alert),
-                          );
-                        },
                       ),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filteredAlerts.length,
+                      itemBuilder: (context, index) {
+                        final alert = filteredAlerts[index];
+
+                        return _AlertCard(
+                          icon: alert['icon'] as IconData,
+                          iconColor: alert['color'] as Color,
+                          title: alert['title'] as String,
+                          device: alert['device'] as String,
+                          time: alert['time'] as String,
+                          onTap: () => openAlertDetails(alert),
+                        );
+                      },
+                    ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _alertCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String device,
-    required String time,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
+class _AlertCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String device;
+  final String time;
+  final VoidCallback onTap;
 
-      child: Container(
-        margin: EdgeInsets.only(
-          bottom: Responsive.h(context, 0.018),
+  const _AlertCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.device,
+    required this.time,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(
+        bottom: Responsive.h(context, 0.018),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          Responsive.radius(context, 16),
         ),
-
-        padding: EdgeInsets.all(
-          Responsive.w(context, 0.04),
-        ),
-
-        decoration: BoxDecoration(
-          color: Colors.white,
-
-          borderRadius: BorderRadius.circular(
-            Responsive.radius(context, 0.04),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: Responsive.w(context, 0.02),
+            offset: Offset(
+              0,
+              Responsive.h(context, 0.004),
+            ),
           ),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: Responsive.w(context, 0.025),
-              offset: Offset(
-                0,
-                Responsive.h(context, 0.004),
-              ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(
+            Responsive.radius(context, 16),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(
+              Responsive.w(context, 0.025),
             ),
-          ],
-        ),
-
-        child: Row(
-          children: [
-            Container(
-              width: Responsive.w(context, 0.123),
-              height: Responsive.w(context, 0.123),
-
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.12),
-
-                borderRadius: BorderRadius.circular(
-                  Responsive.radius(context, 0.035),
+            child: Row(
+              children: [
+                Container(
+                  width: Responsive.w(context, 0.10),
+                  height: Responsive.w(context, 0.10),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(
+                      Responsive.radius(context, 14),
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: Responsive.w(context, 0.05),
+                  ),
                 ),
-              ),
 
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: Responsive.w(context, 0.062),
-              ),
-            ),
+                SizedBox(
+                  width: Responsive.w(context, 0.025),
+                ),
 
-            SizedBox(
-              width: Responsive.w(context, 0.035),
-            ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 15),
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
 
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                      SizedBox(
+                        height: Responsive.h(context, 0.005),
+                      ),
 
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                      Text(
+                        device,
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 13),
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
 
-                    style: TextStyle(
-                      fontSize: Responsive.font(context, 3.8),
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1E293B),
-                    ),
+                      SizedBox(
+                        height: Responsive.h(context, 0.003),
+                      ),
+
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: Responsive.font(context, 11),
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
 
-                  SizedBox(
-                    height: Responsive.h(context, 0.006),
-                  ),
-
-                  Text(
-                    device,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-
-                    style: TextStyle(
-                      fontSize: Responsive.font(context, 3.3),
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
-
-                  SizedBox(
-                    height: Responsive.h(context, 0.004),
-                  ),
-
-                  Text(
-                    time,
-                    style: TextStyle(
-                      fontSize: Responsive.font(context, 2.8),
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
-                ],
-              ),
+                Icon(
+                  Icons.chevron_right,
+                  color: const Color(0xFF64748B),
+                  size: Responsive.w(context, 0.055),
+                ),
+              ],
             ),
-
-            SizedBox(
-              width: Responsive.w(context, 0.01),
-            ),
-
-            Icon(
-              Icons.chevron_right,
-              color: const Color(0xFF64748B),
-              size: Responsive.w(context, 0.06),
-            ),
-          ],
+          ),
         ),
       ),
     );
