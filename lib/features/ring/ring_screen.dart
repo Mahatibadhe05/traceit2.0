@@ -110,7 +110,7 @@ class _RingScreenState extends State<RingScreen>
                                 color: _softBlue,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: _blue.withOpacity(0.08),
+                                    color: _blue.withValues(alpha: 0.08),
                                     blurRadius: 24,
                                     spreadRadius: 2,
                                   ),

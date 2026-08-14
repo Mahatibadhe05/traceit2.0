@@ -78,7 +78,7 @@ class DeviceOverviewScreen extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.018),
+              color: Colors.black.withValues(alpha: 0.018),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),
@@ -241,7 +241,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: _blue.withOpacity(0.10),
+                            color: _blue.withValues(alpha: 0.10),
                             blurRadius: 22,
                             spreadRadius: 3,
                           ),
@@ -437,7 +437,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.018),
+                    color: Colors.black.withValues(alpha: 0.018),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -499,7 +499,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.018),
+                    color: Colors.black.withValues(alpha: 0.018),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -594,7 +594,7 @@ class DeviceOverviewScreen extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.018),
+                      color: Colors.black.withValues(alpha: 0.018),
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),

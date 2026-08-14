@@ -146,7 +146,7 @@ class _LocateScreenState extends State<LocateScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -356,7 +356,7 @@ class _LocateScreenState extends State<LocateScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -426,7 +426,7 @@ class _LocateScreenState extends State<LocateScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -446,7 +446,7 @@ class _LocateScreenState extends State<LocateScreen> {
               height: Responsive.w(context, 0.18),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _blue.withOpacity(0.12),
+                color: _blue.withValues(alpha: 0.12),
               ),
               child: Center(
                 child: Container(
@@ -492,7 +492,7 @@ class _LocateScreenState extends State<LocateScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
           ),
         ],

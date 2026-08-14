@@ -172,7 +172,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -262,7 +262,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                               shape: BoxShape.circle,
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: _blue.withOpacity(0.15),
+                                                  color: _blue.withValues(alpha: 0.15),
                                                   blurRadius: 12,
                                                   offset: const Offset(0, 4),
                                                 ),
@@ -311,7 +311,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
                                               decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.45),
+                                                color: Colors.black.withValues(alpha: 0.45),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: const Icon(
@@ -346,7 +346,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: _blue.withOpacity(0.35),
+                                  color: _blue.withValues(alpha: 0.35),
                                   blurRadius: 14,
                                   offset: const Offset(0, 6),
                                 ),
@@ -356,8 +356,8 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(14),
-                                splashColor: Colors.white.withOpacity(0.24),
-                                highlightColor: Colors.white.withOpacity(0.12),
+                                splashColor: Colors.white.withValues(alpha: 0.24),
+                                highlightColor: Colors.white.withValues(alpha: 0.12),
                                 onTap: () async {
                                   final device = await Navigator.push<Map<String, dynamic>>(
                                     context,
