@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../home/home_screen.dart';
 import '../settings/settings_page.dart';
+import '../alerts/alerts_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,28 +14,42 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const Center(
-      child: Text(
-        "Select a device to locate",
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _screens = [
+      const HomeScreen(),
+
+      // Locate
+      const Center(
+        child: Text(
+          'Select a device to locate',
+          style: TextStyle(
+            fontSize: 16,
+          ),
         ),
       ),
-    ),
-    const Center(child: Text("Alerts")),
-    const SettingsPage(),
-  ];
+
+      // YOUR ALERTS SCREEN
+      const AlertsScreen(),
+
+      // Settings
+      const SettingsPage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+
       bottomNavigationBar: NavigationBar(
-        backgroundColor: Colors.white,
-        indicatorColor: const Color(0xFFE3F0FF),
         selectedIndex: _currentIndex,
 
         onDestinationSelected: (index) {
@@ -45,50 +60,26 @@ class _MainScreenState extends State<MainScreen> {
 
         destinations: const [
           NavigationDestination(
-            icon: Icon(
-              Icons.dashboard_outlined,
-              color: Color(0xFF526A8A),
-            ),
-            selectedIcon: Icon(
-              Icons.dashboard,
-              color: Color(0xFF1769E0),
-            ),
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.location_on_outlined,
-              color: Color(0xFF526A8A),
-            ),
-            selectedIcon: Icon(
-              Icons.location_on,
-              color: Color(0xFF1769E0),
-            ),
+            icon: Icon(Icons.location_on_outlined),
+            selectedIcon: Icon(Icons.location_on),
             label: 'Locate',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.notifications_none_rounded,
-              color: Color(0xFF526A8A),
-            ),
-            selectedIcon: Icon(
-              Icons.notifications_rounded,
-              color: Color(0xFF1769E0),
-            ),
+            icon: Icon(Icons.notifications_none),
+            selectedIcon: Icon(Icons.notifications),
             label: 'Alerts',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Color(0xFF526A8A),
-            ),
-            selectedIcon: Icon(
-              Icons.settings,
-              color: Color(0xFF1769E0),
-            ),
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],
