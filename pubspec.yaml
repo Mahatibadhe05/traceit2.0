@@ -20,9 +20,14 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   permission_handler: ^11.4.0
   firebase_core: ^4.13.0
+<<<<<<< HEAD
   cloud_firestore: ^6.8.0
   firebase_messaging: ^16.5.0
   firebase_auth: ^6.5.7
+=======
+  firebase_auth: ^6.5.7
+  cloud_firestore: ^6.8.0
+>>>>>>> bb6ad3b82ea50cbcd7f7b3f9b2ca9cf970f2ef2a
 
 dev_dependencies:
   flutter_test:

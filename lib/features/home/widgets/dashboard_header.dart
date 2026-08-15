@@ -55,7 +55,7 @@ class DashboardHeader extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.22),
+                    color: AppColors.primary.withValues(alpha: 0.22),
                     blurRadius: 12,
                     offset: const Offset(0, 5),
                   ),

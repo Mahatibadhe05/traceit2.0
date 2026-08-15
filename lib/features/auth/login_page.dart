@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/utils/responsive.dart';
+import '../../services/auth_service.dart';
+import '../../services/profile_service.dart';
 import '../main/main_screen.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,6 +19,11 @@ class _LoginPageState extends State<LoginPage> {
   // ==========================================================
 
   bool isLogin = true;
+
+  final AuthService _authService = AuthService();
+  final ProfileService _profileService = ProfileService();
+
+  bool isLoading = false;
 
   // ==========================================================
   // PASSWORD VISIBILITY
@@ -86,16 +94,10 @@ class _LoginPageState extends State<LoginPage> {
   // SUBMIT FORM
   // ==========================================================
 
-  void submitForm() {
-    final String name =
-        nameController.text.trim();
-
-    final String email =
-        emailController.text.trim();
-
-    final String password =
-        passwordController.text.trim();
-
+  Future<void> submitForm() async {
+    final String name = nameController.text.trim();
+    final String email = emailController.text.trim();
+    final String password = passwordController.text.trim();
     final String confirmPassword =
         confirmPasswordController.text.trim();
 
@@ -176,21 +178,115 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     // ----------------------------------------------------------
-    // TEMPORARY
-    // Firebase will be connected later.
+    // START LOADING
     // ----------------------------------------------------------
 
-    if (isLogin) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const MainScreen(),
-        ),
-      );
-    } else {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      if (isLogin) {
+        // ======================================================
+        // LOGIN
+        // ======================================================
+
+        await _authService.login(
+          email: email,
+          password: password,
+        );
+
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const MainScreen(),
+          ),
+        );
+      } else {
+        // ======================================================
+        // SIGN UP
+        // ======================================================
+
+        final UserCredential credential =
+            await _authService.signUp(
+          email: email,
+          password: password,
+        );
+
+        // Make sure Firebase returned a user.
+        if (credential.user == null) {
+          throw Exception(
+            'Account was created, but the user could not be retrieved.',
+          );
+        }
+
+        // Create users/{uid} in Firestore.
+        await _profileService.createProfile(
+          name: name,
+          email: email,
+        );
+
+        if (!mounted) return;
+
+        showMessage(
+          'Account created successfully!',
+        );
+
+        // Switch back to Login.
+        setState(() {
+          isLogin = true;
+          passwordController.clear();
+          confirmPasswordController.clear();
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      showMessage(_getAuthErrorMessage(e));
+    } catch (e) {
       showMessage(
-        'Account creation button pressed.',
+        'Something went wrong. Please try again.',
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _getAuthErrorMessage(
+    FirebaseAuthException e,
+  ) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+
+      case 'weak-password':
+        return 'Password is too weak. Use at least 6 characters.';
+
+      case 'user-not-found':
+        return 'No account found with this email.';
+
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'Incorrect email or password.';
+
+      case 'user-disabled':
+        return 'This account has been disabled.';
+
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+
+      case 'network-request-failed':
+        return 'Network error. Check your internet connection.';
+
+      default:
+        return e.message ?? 'Authentication failed.';
     }
   }
 
@@ -208,10 +304,40 @@ class _LoginPageState extends State<LoginPage> {
   // FORGOT PASSWORD
   // ==========================================================
 
-  void forgotPassword() {
-    showMessage(
-      'Forgot Password selected.',
-    );
+  Future<void> forgotPassword() async {
+    final String email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      showMessage(
+        'Enter your email first to reset your password.',
+      );
+      return;
+    }
+
+    if (!email.contains('@')) {
+      showMessage(
+        'Please enter a valid email address.',
+      );
+      return;
+    }
+
+    try {
+      await _authService.resetPassword(
+        email: email,
+      );
+
+      if (!mounted) return;
+
+      showMessage(
+        'Password reset email sent.',
+      );
+    } on FirebaseAuthException catch (e) {
+      showMessage(_getAuthErrorMessage(e));
+    } catch (e) {
+      showMessage(
+        'Unable to send password reset email.',
+      );
+    }
   }
 
   // ==========================================================
@@ -1312,7 +1438,7 @@ class _LoginPageState extends State<LoginPage> {
         child:
             ElevatedButton(
           onPressed:
-              submitForm,
+              isLoading ? null : submitForm,
 
           style:
               ElevatedButton.styleFrom(
@@ -1340,27 +1466,37 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          child:
-              Text(
-            isLogin
-                ? 'LOG IN'
-                : 'CREATE ACCOUNT',
-
-            style:
-                TextStyle(
-              fontSize:
-                  Responsive.font(
-                context,
-                3.5,
-              ),
-
-              fontWeight:
-                  FontWeight.w700,
-
-              letterSpacing:
-                  0.5,
-            ),
-          ),
+          child: isLoading
+              ? SizedBox(
+                  width: Responsive.w(
+                    context,
+                    0.055,
+                  ),
+                  height: Responsive.w(
+                    context,
+                    0.055,
+                  ),
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
+                  ),
+                )
+              : Text(
+                  isLogin
+                      ? 'LOG IN'
+                      : 'CREATE ACCOUNT',
+                  style: TextStyle(
+                    fontSize: Responsive.font(
+                      context,
+                      3.5,
+                    ),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
         ),
       ),
     );

@@ -29,22 +29,22 @@ class StatsCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withOpacity(0.12),
-            color.withOpacity(0.04),
+            color.withValues(alpha: 0.12),
+            color.withValues(alpha: 0.04),
           ],
         ),
         borderRadius: BorderRadius.circular(
           Responsive.radius(context, 18),
         ),
         border: Border.all(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
         ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: Responsive.w(context, 0.045),
-            backgroundColor: color.withOpacity(0.10),
+            backgroundColor: color.withValues(alpha: 0.10),
             child: Icon(
               icon,
               color: color,
