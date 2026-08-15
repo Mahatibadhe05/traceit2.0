@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../services/device_service.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -21,6 +21,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final DeviceService _deviceService = DeviceService();
+
+
   List<DeviceModel> devices = [];
   bool isLoading = true;
 
@@ -31,38 +34,60 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadDevices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? devicesJson = prefs.getString('devices');
-    
-    if (devicesJson != null) {
-      try {
-        final List<dynamic> decoded = jsonDecode(devicesJson);
-        setState(() {
-          devices = decoded.map((e) => DeviceModel.fromJson(e)).toList();
-          isLoading = false;
-        });
-        return;
-      } catch (e) {
-        // If JSON parsing fails, fallback to empty list
-      }
+    try {
+      final loadedDevices = await _deviceService.getDevices();
+
+
+      if (!mounted) return;
+
+
+      setState(() {
+        devices = loadedDevices;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+
+      setState(() {
+        isLoading = false;
+      });
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to load devices: $e',
+          ),
+        ),
+      );
     }
-    
-    setState(() {
-      isLoading = false;
-    });
   }
 
-  Future<void> _saveDevices() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(devices.map((e) => e.toJson()).toList());
-    await prefs.setString('devices', encoded);
-  }
 
-  void _deleteDevice(String id) {
-    setState(() {
-      devices.removeWhere((d) => d.id == id);
-    });
-    _saveDevices();
+  Future<void> _deleteDevice(String id) async {
+    try {
+      await _deviceService.deleteDevice(id);
+
+
+      if (!mounted) return;
+
+
+      setState(() {
+        devices.removeWhere((d) => d.id == id);
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete device: $e',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _renameDevice(
@@ -73,23 +98,48 @@ class _HomeScreenState extends State<HomeScreen> {
       (device) => device.id == id,
     );
 
+
     if (index == -1) return;
 
-    setState(() {
-      devices[index] = DeviceModel(
-        id: devices[index].id,
-        name: newName,
-        connected: devices[index].connected,
-        battery: devices[index].battery,
-        signal: devices[index].signal,
-        lastSeen: devices[index].lastSeen,
-        imagePath: devices[index].imagePath,
-        rssi: devices[index].rssi,
-        bleId: devices[index].bleId,
-      );
-    });
 
-    await _saveDevices();
+    final oldDevice = devices[index];
+
+
+    final updatedDevice = DeviceModel(
+      id: oldDevice.id,
+      name: newName,
+      connected: oldDevice.connected,
+      battery: oldDevice.battery,
+      signal: oldDevice.signal,
+      lastSeen: oldDevice.lastSeen,
+      imagePath: oldDevice.imagePath,
+      rssi: oldDevice.rssi,
+      bleId: oldDevice.bleId,
+    );
+
+
+    try {
+      await _deviceService.updateDevice(updatedDevice);
+
+
+      if (!mounted) return;
+
+
+      setState(() {
+        devices[index] = updatedDevice;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to rename device: $e',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _navigateToAddDevice() async {
@@ -102,24 +152,44 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    if (result != null) {
-      final device = DeviceModel(
-        id: "esp32${DateTime.now().millisecondsSinceEpoch}",
-        name: result["name"] ?? "NO NAME",
-        connected: true,
-        battery: 82,
-        signal: "Excellent",
-        lastSeen: "Just now",
-        imagePath: result["imagePath"],
-        bleId: result["bleId"],
-        rssi: result["rssi"] ?? -55,
-      );
+
+    if (result == null) return;
+
+
+    final device = DeviceModel(
+      id: "esp32${DateTime.now().millisecondsSinceEpoch}",
+      name: result["name"] ?? "NO NAME",
+      connected: true,
+      battery: 82,
+      signal: "Excellent",
+      lastSeen: "Just now",
+      imagePath: result["imagePath"],
+      bleId: result["bleId"],
+      rssi: result["rssi"] ?? -55,
+    );
+
+
+    try {
+      await _deviceService.addDevice(device);
+
+
+      if (!mounted) return;
+
 
       setState(() {
         devices.add(device);
       });
+    } catch (e) {
+      if (!mounted) return;
 
-      await _saveDevices();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to save device: $e',
+          ),
+        ),
+      );
     }
   }
 
