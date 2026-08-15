@@ -249,7 +249,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.10.0"
-<<<<<<< HEAD
   firebase_messaging:
     dependency: "direct main"
     description:
@@ -274,8 +273,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.4"
-=======
->>>>>>> bb6ad3b82ea50cbcd7f7b3f9b2ca9cf970f2ef2a
   flutter:
     dependency: "direct main"
     description: flutter

@@ -7,7 +7,6 @@
   "client": [
     {
       "client_info": {
-<<<<<<< HEAD
         "mobilesdk_app_id": "1:666103000145:android:93d1b3dfb9b74a2ca3dc70",
         "android_client_info": {
           "package_name": "com.example.login"
@@ -27,8 +26,6 @@
     },
     {
       "client_info": {
-=======
->>>>>>> bb6ad3b82ea50cbcd7f7b3f9b2ca9cf970f2ef2a
         "mobilesdk_app_id": "1:666103000145:android:d64fc285454cb4f6a3dc70",
         "android_client_info": {
           "package_name": "com.example.traceit"

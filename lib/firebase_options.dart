@@ -57,10 +57,7 @@ class DefaultFirebaseOptions {
     projectId: 'trackit-121931',
     storageBucket: 'trackit-121931.firebasestorage.app',
   );
-<<<<<<< HEAD
-=======
 
->>>>>>> bb6ad3b82ea50cbcd7f7b3f9b2ca9cf970f2ef2a
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBDHUHGqF2y0EliqXycZ8wxoFeemAhZEts',
     appId: '1:666103000145:ios:e78a7f28a22a250ca3dc70',
@@ -69,10 +66,7 @@ class DefaultFirebaseOptions {
     storageBucket: 'trackit-121931.firebasestorage.app',
     iosBundleId: 'com.example.traceit',
   );
-<<<<<<< HEAD
-=======
 
->>>>>>> bb6ad3b82ea50cbcd7f7b3f9b2ca9cf970f2ef2a
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBDHUHGqF2y0EliqXycZ8wxoFeemAhZEts',
     appId: '1:666103000145:ios:e78a7f28a22a250ca3dc70',

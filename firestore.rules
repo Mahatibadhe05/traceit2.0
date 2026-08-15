@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================================
+    // USER DATA
+    // ==========================================================
+    match /users/{userId} {
+
+      // A logged-in user can read their own profile.
+      allow read: if request.auth != null
+                  && request.auth.uid == userId;
+
+      // A logged-in user can create their own profile.
+      allow create: if request.auth != null
+                    && request.auth.uid == userId;
+
+      // A logged-in user can update their own profile.
+      allow update: if request.auth != null
+                    && request.auth.uid == userId;
+
+      // A logged-in user can delete their own profile.
+      allow delete: if request.auth != null
+                    && request.auth.uid == userId;
+
+
+      // ========================================================
+      // ALERTS
+      // ========================================================
+      match /alerts/{alertId} {
+
+        // Users can read only their own alerts.
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+
+        // Users can create alerts only inside their own account.
+        allow create: if request.auth != null
+                      && request.auth.uid == userId;
+
+        // Users can update their own alerts.
+        allow update: if request.auth != null
+                      && request.auth.uid == userId;
+
+        // Users can delete their own alerts.
+        allow delete: if request.auth != null
+                      && request.auth.uid == userId;
+      }
+    }
+  }
+}
