@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'alert_details_screen.dart';
 
 class AlertsScreen extends StatefulWidget {
@@ -11,75 +14,233 @@ class AlertsScreen extends StatefulWidget {
 class _AlertsScreenState extends State<AlertsScreen> {
   String _selectedFilter = 'All Alerts';
 
-  final List<_AlertData> _alerts = const [
-    _AlertData(
-      type: 'Moving Away',
-      title: 'Moving Away Alert',
-      device: 'Backpack',
-      time: '2 min ago',
-      icon: Icons.directions_walk,
-      iconColor: Color(0xFFFF4D55),
-      backgroundColor: Color(0xFFFFE8E8),
-    ),
-    _AlertData(
-      type: 'Left Behind',
-      title: 'Left Behind Alert',
-      device: 'Keys',
-      time: '1 hour ago',
-      icon: Icons.key,
-      iconColor: Color(0xFFFFAA18),
-      backgroundColor: Color(0xFFFFF3DF),
-    ),
-    _AlertData(
-      type: 'Connection Lost',
-      title: 'Connection Lost',
-      device: 'Wallet',
-      time: '3 hours ago',
-      icon: Icons.bluetooth_disabled,
-      iconColor: Color(0xFFFF5B61),
-      backgroundColor: Color(0xFFFFE8E8),
-    ),
-    _AlertData(
-      type: 'Low Battery',
-      title: 'Low Battery Alert',
-      device: 'Glasses',
-      time: '1 day ago',
-      icon: Icons.battery_alert,
-      iconColor: Color(0xFF168FC5),
-      backgroundColor: Color(0xFFE3F5FB),
-    ),
-  ];
+  // ==========================================================
+  // FIRESTORE ALERT STREAM
+  // ==========================================================
 
-  List<_AlertData> get _filteredAlerts {
-    if (_selectedFilter == 'All Alerts') {
-      return _alerts;
+  Stream<QuerySnapshot<Map<String, dynamic>>> _alertsStream() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Stream.empty();
     }
 
-    return _alerts
-        .where((alert) => alert.type == _selectedFilter)
-        .toList();
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('alerts')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
   }
 
   // ==========================================================
-  // OPEN DETAILS SCREEN
+  // CONVERT FIRESTORE DOCUMENT TO ALERT DATA
   // ==========================================================
 
-  void _openAlert(_AlertData alert) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return AlertDetailsScreen(
-            title: alert.title,
-            device: alert.device,
-            time: alert.time,
-            icon: alert.icon,
-            iconColor: alert.iconColor,
-            backgroundColor: alert.backgroundColor,
-          );
-        },
-      ),
+  _AlertData _alertFromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data() ?? {};
+
+    final type = data['type']?.toString() ?? 'UNKNOWN';
+    final title = data['title']?.toString() ?? 'Alert';
+    final device =
+        data['deviceId']?.toString() ?? 'Unknown Device';
+    final message = data['message']?.toString() ?? '';
+
+    Timestamp? timestamp;
+
+    if (data['timestamp'] is Timestamp) {
+      timestamp = data['timestamp'] as Timestamp;
+    }
+
+    return _AlertData(
+      id: document.id,
+      type: _displayType(type),
+      firestoreType: type,
+      title: title,
+      device: _deviceName(device),
+      time: _formatTime(timestamp),
+      message: message,
+      icon: _getIcon(type),
+      iconColor: _getIconColor(type),
+      backgroundColor: _getBackgroundColor(type),
     );
+  }
+
+  // ==========================================================
+  // TYPE DISPLAY
+  // ==========================================================
+
+  String _displayType(String type) {
+    switch (type) {
+      case 'MOVING_AWAY':
+        return 'Moving Away';
+
+      case 'LEFT_BEHIND':
+        return 'Left Behind';
+
+      case 'CONNECTION_LOST':
+        return 'Connection Lost';
+
+      case 'LOW_BATTERY':
+        return 'Low Battery';
+
+      case 'ANTI_THEFT':
+        return 'Anti-Theft';
+
+      default:
+        return type
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .split(' ')
+            .map(
+              (word) => word.isEmpty
+                  ? ''
+                  : '${word[0].toUpperCase()}${word.substring(1)}',
+            )
+            .join(' ');
+    }
+  }
+
+  // ==========================================================
+  // DEVICE NAME
+  // ==========================================================
+
+  String _deviceName(String deviceId) {
+    switch (deviceId) {
+      case 'backpack_01':
+        return 'Backpack';
+
+      case 'keys_01':
+        return 'Keys';
+
+      case 'wallet_01':
+        return 'Wallet';
+
+      case 'glasses_01':
+        return 'Glasses';
+
+      default:
+        return deviceId;
+    }
+  }
+
+  // ==========================================================
+  // TIME FORMAT
+  // ==========================================================
+
+  String _formatTime(Timestamp? timestamp) {
+    if (timestamp == null) {
+      return 'Unknown time';
+    }
+
+    final difference =
+        DateTime.now().difference(timestamp.toDate());
+
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    }
+
+    if (difference.inMinutes < 60) {
+      final minutes = difference.inMinutes;
+
+      return '$minutes '
+          '${minutes == 1 ? 'minute' : 'minutes'} ago';
+    }
+
+    if (difference.inHours < 24) {
+      final hours = difference.inHours;
+
+      return '$hours '
+          '${hours == 1 ? 'hour' : 'hours'} ago';
+    }
+
+    final days = difference.inDays;
+
+    if (days == 1) {
+      return '1 day ago';
+    }
+
+    return '$days days ago';
+  }
+
+  // ==========================================================
+  // ICON
+  // ==========================================================
+
+  IconData _getIcon(String type) {
+    switch (type) {
+      case 'MOVING_AWAY':
+        return Icons.directions_walk;
+
+      case 'LEFT_BEHIND':
+        return Icons.key;
+
+      case 'CONNECTION_LOST':
+        return Icons.bluetooth_disabled;
+
+      case 'LOW_BATTERY':
+        return Icons.battery_alert;
+
+      case 'ANTI_THEFT':
+        return Icons.security;
+
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  // ==========================================================
+  // ICON COLOR
+  // ==========================================================
+
+  Color _getIconColor(String type) {
+    switch (type) {
+      case 'MOVING_AWAY':
+        return const Color(0xFFFF4D55);
+
+      case 'LEFT_BEHIND':
+        return const Color(0xFFFFAA18);
+
+      case 'CONNECTION_LOST':
+        return const Color(0xFFFF5B61);
+
+      case 'LOW_BATTERY':
+        return const Color(0xFF168FC5);
+
+      case 'ANTI_THEFT':
+        return const Color(0xFFFF4D55);
+
+      default:
+        return const Color(0xFF6C63FF);
+    }
+  }
+
+  // ==========================================================
+  // BACKGROUND COLOR
+  // ==========================================================
+
+  Color _getBackgroundColor(String type) {
+    switch (type) {
+      case 'MOVING_AWAY':
+        return const Color(0xFFFFE8E8);
+
+      case 'LEFT_BEHIND':
+        return const Color(0xFFFFF3DF);
+
+      case 'CONNECTION_LOST':
+        return const Color(0xFFFFE8E8);
+
+      case 'LOW_BATTERY':
+        return const Color(0xFFE3F5FB);
+
+      case 'ANTI_THEFT':
+        return const Color(0xFFFFE8E8);
+
+      default:
+        return const Color(0xFFEDEBFF);
+    }
   }
 
   // ==========================================================
@@ -93,6 +254,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       'Left Behind',
       'Connection Lost',
       'Low Battery',
+      'Anti-Theft',
     ];
 
     showModalBottomSheet(
@@ -115,7 +277,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Filter Alerts',
@@ -166,7 +329,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                             children: [
                               Icon(
                                 isSelected
-                                    ? Icons.radio_button_checked
+                                    ? Icons
+                                        .radio_button_checked
                                     : Icons.radio_button_off,
                                 color: isSelected
                                     ? const Color(0xFF6C63FF)
@@ -184,8 +348,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     fontWeight: isSelected
                                         ? FontWeight.w700
                                         : FontWeight.w500,
-                                    color:
-                                        const Color(0xFF263247),
+                                    color: const Color(
+                                      0xFF263247,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -212,12 +377,38 @@ class _AlertsScreenState extends State<AlertsScreen> {
   }
 
   // ==========================================================
+  // OPEN ALERT DETAILS
+  // ==========================================================
+
+  void _openAlert(_AlertData alert) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return AlertDetailsScreen(
+            title: alert.title,
+            device: alert.device,
+            time: alert.time,
+            icon: alert.icon,
+            iconColor: alert.iconColor,
+
+            // FIX:
+            // AlertDetailsScreen requires this parameter.
+            backgroundColor: alert.backgroundColor,
+          );
+        },
+      ),
+    );
+  }
+
+  // ==========================================================
   // BUILD
   // ==========================================================
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width =
+        MediaQuery.of(context).size.width;
 
     final horizontalPadding =
         width < 600 ? 22.0 : 32.0;
@@ -228,10 +419,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
     final sectionSize =
         width < 600 ? 20.0 : 24.0;
 
-    final alerts = _filteredAlerts;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor:
+          const Color(0xFFF7F8FC),
 
       body: SafeArea(
         child: Column(
@@ -275,7 +465,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       _selectedFilter == 'All Alerts'
                           ? 'Filter'
                           : _selectedFilter,
-                      overflow: TextOverflow.ellipsis,
+                      overflow:
+                          TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -288,77 +479,216 @@ class _AlertsScreenState extends State<AlertsScreen> {
             ),
 
             // ==================================================
-            // ALERT LIST
+            // FIRESTORE DATA
             // ==================================================
 
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  22,
-                  horizontalPadding,
-                  30,
-                ),
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _selectedFilter,
-                          style: TextStyle(
-                            fontSize: sectionSize,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF263247),
-                          ),
+              child: StreamBuilder<
+                  QuerySnapshot<Map<String, dynamic>>>(
+                stream: _alertsStream(),
+
+                builder: (context, snapshot) {
+                  // ==================================================
+                  // LOADING
+                  // ==================================================
+
+                  if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                      child:
+                          CircularProgressIndicator(
+                        color: Color(0xFF6C63FF),
+                      ),
+                    );
+                  }
+
+                  // ==================================================
+                  // ERROR
+                  // ==================================================
+
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize:
+                              MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 50,
+                              color:
+                                  Color(0xFFFF5B61),
+                            ),
+
+                            const SizedBox(
+                              height: 12,
+                            ),
+
+                            const Text(
+                              'Unable to load alerts',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight:
+                                    FontWeight.w700,
+                                color:
+                                    Color(0xFF263247),
+                              ),
+                            ),
+
+                            const SizedBox(
+                              height: 8,
+                            ),
+
+                            Text(
+                              '${snapshot.error}',
+                              textAlign:
+                                  TextAlign.center,
+                              style:
+                                  const TextStyle(
+                                fontSize: 13,
+                                color:
+                                    Color(0xFF8495AE),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    );
+                  }
 
-                      if (_selectedFilter != 'All Alerts')
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedFilter =
-                                  'All Alerts';
-                            });
-                          },
-                          child: const Text(
-                            'Show All',
-                            style: TextStyle(
-                              color: Color(0xFF6C63FF),
-                              fontWeight: FontWeight.w600,
+                  // ==================================================
+                  // CHECK LOGIN
+                  // ==================================================
+
+                  final user =
+                      FirebaseAuth.instance.currentUser;
+
+                  if (user == null) {
+                    return const Center(
+                      child: _EmptyAlerts(
+                        title: 'Not logged in',
+                        subtitle:
+                            'Please log in to view your alerts.',
+                      ),
+                    );
+                  }
+
+                  // ==================================================
+                  // FIRESTORE DOCUMENTS
+                  // ==================================================
+
+                  final allAlerts =
+                      snapshot.data?.docs
+                              .map(
+                                _alertFromFirestore,
+                              )
+                              .toList() ??
+                          [];
+
+                  // ==================================================
+                  // APPLY FILTER
+                  // ==================================================
+
+                  final alerts =
+                      _selectedFilter ==
+                              'All Alerts'
+                          ? allAlerts
+                          : allAlerts
+                              .where(
+                                (alert) =>
+                                    alert.type ==
+                                    _selectedFilter,
+                              )
+                              .toList();
+
+                  // ==================================================
+                  // ALERT LIST
+                  // ==================================================
+
+                  return ListView(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      22,
+                      horizontalPadding,
+                      30,
+                    ),
+
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _selectedFilter,
+                              style: TextStyle(
+                                fontSize:
+                                    sectionSize,
+                                fontWeight:
+                                    FontWeight.w700,
+                                color:
+                                    const Color(
+                                  0xFF263247,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+
+                          if (_selectedFilter !=
+                              'All Alerts')
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedFilter =
+                                      'All Alerts';
+                                });
+                              },
+                              child: const Text(
+                                'Show All',
+                                style: TextStyle(
+                                  color:
+                                      Color(0xFF6C63FF),
+                                  fontWeight:
+                                      FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      if (alerts.isEmpty)
+                        const _EmptyAlerts(),
+
+                      ...List.generate(
+                        alerts.length,
+                        (index) {
+                          final alert =
+                              alerts[index];
+
+                          return Padding(
+                            padding:
+                                EdgeInsets.only(
+                              bottom:
+                                  index ==
+                                          alerts.length -
+                                              1
+                                      ? 0
+                                      : 16,
+                            ),
+                            child: _AlertCard(
+                              alert: alert,
+                              onTap: () {
+                                _openAlert(alert);
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  if (alerts.isEmpty)
-                    const _EmptyAlerts(),
-
-                  ...List.generate(
-                    alerts.length,
-                    (index) {
-                      final alert = alerts[index];
-
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom:
-                              index == alerts.length - 1
-                                  ? 0
-                                  : 16,
-                        ),
-                        child: _AlertCard(
-                          alert: alert,
-                          onTap: () {
-                            _openAlert(alert);
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ],
@@ -373,19 +703,25 @@ class _AlertsScreenState extends State<AlertsScreen> {
 // ==========================================================
 
 class _AlertData {
+  final String id;
   final String type;
+  final String firestoreType;
   final String title;
   final String device;
   final String time;
+  final String message;
   final IconData icon;
   final Color iconColor;
   final Color backgroundColor;
 
   const _AlertData({
+    required this.id,
     required this.type,
+    required this.firestoreType,
     required this.title,
     required this.device,
     required this.time,
+    required this.message,
     required this.icon,
     required this.iconColor,
     required this.backgroundColor,
@@ -407,7 +743,8 @@ class _AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width =
+        MediaQuery.of(context).size.width;
 
     final cardPadding =
         width < 600 ? 14.0 : 20.0;
@@ -423,16 +760,19 @@ class _AlertCard extends StatelessWidget {
 
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius:
+          BorderRadius.circular(20),
       elevation: 1,
       shadowColor: Colors.black12,
 
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius:
+            BorderRadius.circular(20),
         onTap: onTap,
 
         child: Padding(
-          padding: EdgeInsets.all(cardPadding),
+          padding:
+              EdgeInsets.all(cardPadding),
 
           child: Row(
             children: [
@@ -441,14 +781,17 @@ class _AlertCard extends StatelessWidget {
                 height: iconBoxSize,
 
                 decoration: BoxDecoration(
-                  color: alert.backgroundColor,
-                  borderRadius: BorderRadius.circular(16),
+                  color:
+                      alert.backgroundColor,
+                  borderRadius:
+                      BorderRadius.circular(16),
                 ),
 
                 child: Icon(
                   alert.icon,
                   color: alert.iconColor,
-                  size: width < 600 ? 25 : 30,
+                  size:
+                      width < 600 ? 25 : 30,
                 ),
               ),
 
@@ -469,7 +812,9 @@ class _AlertCard extends StatelessWidget {
                         fontWeight:
                             FontWeight.w700,
                         color:
-                            const Color(0xFF263247),
+                            const Color(
+                          0xFF263247,
+                        ),
                       ),
                     ),
 
@@ -480,7 +825,9 @@ class _AlertCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: deviceSize,
                         color:
-                            const Color(0xFF8495AE),
+                            const Color(
+                          0xFF8495AE,
+                        ),
                         fontWeight:
                             FontWeight.w500,
                       ),
@@ -504,7 +851,8 @@ class _AlertCard extends StatelessWidget {
               const Icon(
                 Icons.chevron_right,
                 size: 28,
-                color: Color(0xFF71829A),
+                color:
+                    Color(0xFF71829A),
               ),
             ],
           ),
@@ -519,7 +867,14 @@ class _AlertCard extends StatelessWidget {
 // ==========================================================
 
 class _EmptyAlerts extends StatelessWidget {
-  const _EmptyAlerts();
+  final String title;
+  final String subtitle;
+
+  const _EmptyAlerts({
+    this.title = 'No alerts found',
+    this.subtitle =
+        'There are no alerts in this category.',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -529,33 +884,39 @@ class _EmptyAlerts extends StatelessWidget {
         vertical: 50,
         horizontal: 20,
       ),
-      child: const Column(
+
+      child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.notifications_none,
             size: 50,
-            color: Color(0xFF9AA9BD),
+            color:
+                Color(0xFF9AA9BD),
           ),
 
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           Text(
-            'No alerts found',
-            style: TextStyle(
+            title,
+            style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF263247),
+              fontWeight:
+                  FontWeight.w600,
+              color:
+                  Color(0xFF263247),
             ),
           ),
 
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
 
           Text(
-            'There are no alerts in this category.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
+            subtitle,
+            textAlign:
+                TextAlign.center,
+            style: const TextStyle(
               fontSize: 14,
-              color: Color(0xFF8495AE),
+              color:
+                  Color(0xFF8495AE),
             ),
           ),
         ],
