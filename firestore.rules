@@ -46,6 +46,32 @@ service cloud.firestore {
         allow delete: if request.auth != null
                       && request.auth.uid == userId;
       }
+
+      // ========================================================
+      // DEVICES
+      // ========================================================
+      match /devices/{deviceId} {
+
+
+        // Users can read only their own devices.
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+
+
+        // Users can create devices only inside their own account.
+        allow create: if request.auth != null
+                      && request.auth.uid == userId;
+
+
+        // Users can update their own devices.
+        allow update: if request.auth != null
+                      && request.auth.uid == userId;
+
+
+        // Users can delete their own devices.
+        allow delete: if request.auth != null
+                      && request.auth.uid == userId;
+      }
     }
   }
 }

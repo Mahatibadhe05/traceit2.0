@@ -59,47 +59,19 @@ class DeviceCard extends StatelessWidget {
   }
 
   Future<void> _showRenameDialog(BuildContext context) async {
-    final controller = TextEditingController(
-      text: deviceName,
-    );
-
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Rename Device'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'Enter device name',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(
-                  context,
-                  controller.text.trim(),
-                );
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _RenameDeviceDialog(
+        currentName: deviceName,
+      ),
     );
 
-    controller.dispose();
 
-    if (newName != null && newName.isNotEmpty) {
-      onRename?.call(newName);
+    if (!context.mounted) return;
+
+
+    if (newName != null && newName.trim().isNotEmpty) {
+      onRename?.call(newName.trim());
     }
   }
 
@@ -385,6 +357,86 @@ class DeviceCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RenameDeviceDialog extends StatefulWidget {
+  final String currentName;
+
+
+  const _RenameDeviceDialog({
+    required this.currentName,
+  });
+
+
+  @override
+  State<_RenameDeviceDialog> createState() =>
+      _RenameDeviceDialogState();
+}
+
+
+class _RenameDeviceDialogState
+    extends State<_RenameDeviceDialog> {
+  late final TextEditingController _controller;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+
+    _controller = TextEditingController(
+      text: widget.currentName,
+    );
+  }
+
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rename Device'),
+
+
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        decoration: const InputDecoration(
+          hintText: 'Enter device name',
+        ),
+      ),
+
+
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel'),
+        ),
+
+
+        FilledButton(
+          onPressed: () {
+            final name = _controller.text.trim();
+
+
+            if (name.isEmpty) return;
+
+
+            Navigator.of(context).pop(name);
+          },
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }
