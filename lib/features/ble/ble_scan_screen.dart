@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../../services/ble_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive.dart';
@@ -26,28 +28,91 @@ class BleScanScreen extends StatefulWidget {
 
 class _BleScanScreenState extends State<BleScanScreen> {
   // ---- UNCHANGED LOGIC ----
-  final List<Map<String, dynamic>> devices = [
-    {
-      "name": "Charm",
-      "id": "CHARM_A001",
-      "rssi": -48,
+  final BleService _bleService = BleService();
+
+
+  List<ScanResult> _scanResults = [];
+
+
+  final Map<String, Map<String, dynamic>> _fakeDevices = {
+    'CHARM_TEST': {
+      'name': 'TraceIt Test Charm',
+      'id': 'CHARM_TEST',
+      'rssi': -55,
     },
-    {
-      "name": "Charm",
-      "id": "CHARM_A002",
-      "rssi": -62,
-    },
-    {
-      "name": "Charm",
-      "id": "CHARM_A003",
-      "rssi": -76,
-    },
-    {
-      "name": "Charm",
-      "id": "CHARM_A004",
-      "rssi": -88,
-    },
-  ];
+  };
+
+
+  bool _isScanning = false;
+  String? _scanError;
+
+  @override
+  void initState() {
+    super.initState();
+
+
+    _startBleScan();
+  }
+
+
+  @override
+  void dispose() {
+    _bleService.dispose();
+    super.dispose();
+  }
+
+
+  Future<void> _startBleScan() async {
+    setState(() {
+      _isScanning = true;
+      _scanResults = [];
+      _scanError = null;
+    });
+
+
+    final permissionsGranted =
+        await _bleService.requestPermissions();
+
+
+    if (!permissionsGranted) {
+      if (!mounted) return;
+
+
+      setState(() {
+        _isScanning = false;
+        _scanError = 'Bluetooth permission is required.';
+      });
+
+
+      return;
+    }
+
+
+    try {
+      await for (final results
+          in _bleService.scanForDevices()) {
+        if (!mounted) return;
+
+
+        setState(() {
+          _scanResults = results;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+
+      setState(() {
+        _scanError = 'Unable to scan for nearby devices.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
+    }
+  }
 
   DeviceModel? _getAssignedDevice(String bleId) {
     for (final device in widget.savedDevices) {
@@ -185,14 +250,41 @@ class _BleScanScreenState extends State<BleScanScreen> {
                 Expanded(
                   child: ListView.separated(
                     physics: const BouncingScrollPhysics(),
-                    itemCount: devices.length,
+                    itemCount: _scanResults.length + _fakeDevices.length,
                     separatorBuilder: (context, index) =>
                         SizedBox(height: Responsive.h(context, 0.014)),
                     itemBuilder: (context, index) {
-                      final device = devices[index];
-                      final assignedDevice = _getAssignedDevice(device["id"]);
+                      final isFakeDevice = index >= _scanResults.length;
+
+
+                      String deviceName;
+                      String bleId;
+                      int rssi;
+
+
+                      if (isFakeDevice) {
+                        final fakeDevice = _fakeDevices.values.first;
+
+
+                        deviceName = fakeDevice['name'] as String;
+                        bleId = fakeDevice['id'] as String;
+                        rssi = fakeDevice['rssi'] as int;
+                      } else {
+                        final result = _scanResults[index];
+                        final bluetoothDevice = result.device;
+
+
+                        deviceName = bluetoothDevice.platformName.isNotEmpty
+                            ? bluetoothDevice.platformName
+                            : 'Charm';
+
+
+                        bleId = bluetoothDevice.remoteId.str;
+                        rssi = result.rssi;
+                      }
+
+                      final assignedDevice = _getAssignedDevice(bleId);
                       final isAssigned = assignedDevice != null;
-                      final rssi = device["rssi"] as int;
                       final statusColor =
                           isAssigned ? const Color(0xFF16A34A) : _signalColor(rssi);
 
@@ -208,9 +300,9 @@ class _BleScanScreenState extends State<BleScanScreen> {
                                   Navigator.pop(
                                     context,
                                     {
-                                      "name": "Charm",
-                                      "id": device["id"],
-                                      "rssi": device["rssi"],
+                                      "name": deviceName,
+                                      "id": bleId,
+                                      "rssi": rssi,
                                     },
                                   );
                                 },
@@ -265,7 +357,7 @@ class _BleScanScreenState extends State<BleScanScreen> {
                                       Text(
                                         isAssigned
                                             ? assignedDevice.name
-                                            : "Charm",
+                                            : deviceName,
                                         style: AppTextStyles.sectionTitle(
                                                 context)
                                             .copyWith(
@@ -291,7 +383,9 @@ class _BleScanScreenState extends State<BleScanScreen> {
                                           Text(
                                             isAssigned
                                                 ? "Already connected"
-                                                : "${_getSignalStatus(rssi)} • $rssi dBm",
+                                                : isFakeDevice
+                                                    ? "Test device • $rssi dBm"
+                                                    : "${_getSignalStatus(rssi)} • $rssi dBm",
                                             style: TextStyle(
                                               color: isAssigned
                                                   ? const Color(0xFF15803D)

@@ -1,3 +1,5 @@
+import 'location_model.dart';
+
 class DeviceModel {
   final String id;
   final String name;
@@ -10,6 +12,8 @@ class DeviceModel {
   // BLE-related data
   final int rssi;
   final String? bleId;
+  final String? geoLinkerId;
+  final LocationModel? location;
 
   DeviceModel({
     required this.id,
@@ -21,6 +25,8 @@ class DeviceModel {
     this.imagePath,
     this.rssi = -55,
     this.bleId,
+    this.geoLinkerId,
+    this.location,
   });
 
   Map<String, dynamic> toJson() {
@@ -34,6 +40,8 @@ class DeviceModel {
       'imagePath': imagePath,
       'rssi': rssi,
       'bleId': bleId,
+      'geoLinkerId': geoLinkerId,
+      'location': location?.toMap(),
     };
   }
 
@@ -48,6 +56,12 @@ class DeviceModel {
       imagePath: json['imagePath'],
       rssi: json['rssi'] ?? -55,
       bleId: json['bleId'],
+      geoLinkerId: json['geoLinkerId'],
+      location: json['location'] != null
+          ? LocationModel.fromMap(
+              Map<String, dynamic>.from(json['location']),
+            )
+          : null,
     );
   }
 }

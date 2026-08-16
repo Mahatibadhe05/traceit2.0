@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 
 import '../models/device_model.dart';
+import '../models/location_model.dart';
 
 
 class DeviceService {
@@ -95,5 +96,18 @@ class DeviceService {
     await _devicesCollection
         .doc(deviceId)
         .delete();
+  }
+
+
+  Future<void> updateLocation({
+    required String deviceId,
+    required LocationModel location,
+  }) async {
+    await _devicesCollection
+        .doc(deviceId)
+        .update({
+      'location': location.toMap(),
+      'lastSeen': 'Just now',
+    });
   }
 }

@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive.dart';
 import '../../core/widgets/device_card.dart';
 import '../../models/device_model.dart';
+import '../../models/location_model.dart';
 import '../add_device/add_device_screen.dart';
 import '../device_overview/device_overview_screen.dart';
 import 'widgets/dashboard_header.dart';
@@ -90,6 +91,41 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _testLocation(DeviceModel device) async {
+    const testLocation = LocationModel(
+      latitude: 19.0760,
+      longitude: 72.8777,
+      accuracy: 10.0,
+    );
+
+
+    try {
+      await _deviceService.updateLocation(
+        deviceId: device.id,
+        location: testLocation,
+      );
+
+
+      if (!mounted) return;
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Test location saved successfully!'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save test location: $e'),
+        ),
+      );
+    }
+  }
+
   Future<void> _renameDevice(
     String id,
     String newName,
@@ -115,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
       imagePath: oldDevice.imagePath,
       rssi: oldDevice.rssi,
       bleId: oldDevice.bleId,
+      geoLinkerId: oldDevice.geoLinkerId,
     );
 
 
@@ -166,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
       imagePath: result["imagePath"],
       bleId: result["bleId"],
       rssi: result["rssi"] ?? -55,
+      geoLinkerId: "TRACEIT_TEST_001",
     );
 
 
