@@ -40,6 +40,11 @@ class _BleScanScreenState extends State<BleScanScreen> {
       'id': 'CHARM_TEST',
       'rssi': -55,
     },
+    'FAKE_CHARM_002': {
+      'name': 'TraceIt Test Charm 2',
+      'id': 'FAKE_CHARM_002',
+      'rssi': -68,
+    },
   };
 
 
@@ -263,7 +268,8 @@ class _BleScanScreenState extends State<BleScanScreen> {
 
 
                       if (isFakeDevice) {
-                        final fakeDevice = _fakeDevices.values.first;
+                        final fakeDeviceIndex = index - _scanResults.length;
+                        final fakeDevice = _fakeDevices.values.elementAt(fakeDeviceIndex);
 
 
                         deviceName = fakeDevice['name'] as String;

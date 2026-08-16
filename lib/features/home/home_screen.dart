@@ -204,6 +204,12 @@ class _HomeScreenState extends State<HomeScreen> {
       bleId: result["bleId"],
       rssi: result["rssi"] ?? -55,
       geoLinkerId: "TRACEIT_TEST_001",
+      location: LocationModel(
+        latitude: 19.0760,
+        longitude: 72.8777,
+        accuracy: 10,
+        updatedAt: null,
+      ),
     );
 
 
