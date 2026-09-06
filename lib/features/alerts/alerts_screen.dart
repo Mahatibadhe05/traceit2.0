@@ -13,6 +13,7 @@ class AlertsScreen extends StatefulWidget {
 
 class _AlertsScreenState extends State<AlertsScreen> {
   String _selectedFilter = 'All Alerts';
+  final Set<String> _unreadAlertIds = {};
 
   // ==========================================================
   // FIRESTORE ALERT STREAM
@@ -679,8 +680,25 @@ class _AlertsScreenState extends State<AlertsScreen> {
                             ),
                             child: _AlertCard(
                               alert: alert,
+                              isUnread: _unreadAlertIds.contains(alert.id),
                               onTap: () {
+                                setState(() {
+                                  _unreadAlertIds.remove(alert.id);
+                                });
+
                                 _openAlert(alert);
+                              },
+                              onLongPress: () {
+                                setState(() {
+                                  _unreadAlertIds.add(alert.id);
+                                });
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Alert marked as unread'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               },
                             ),
                           );
@@ -734,11 +752,15 @@ class _AlertData {
 
 class _AlertCard extends StatelessWidget {
   final _AlertData alert;
+  final bool isUnread;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   const _AlertCard({
     required this.alert,
+    required this.isUnread,
     required this.onTap,
+    required this.onLongPress,
   });
 
   @override
@@ -769,6 +791,7 @@ class _AlertCard extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(20),
         onTap: onTap,
+        onLongPress: onLongPress,
 
         child: Padding(
           padding:
@@ -802,20 +825,31 @@ class _AlertCard extends StatelessWidget {
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      alert.title,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: titleSize,
-                        fontWeight:
-                            FontWeight.w700,
-                        color:
-                            const Color(
-                          0xFF263247,
+                    Row(
+                      children: [
+                        if (isUnread)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(right: 7),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF6C63FF),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        Expanded(
+                          child: Text(
+                            alert.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF263247),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
 
                     const SizedBox(height: 5),
