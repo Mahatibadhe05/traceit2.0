@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
-import 'features/home/home_screen.dart';
+import 'features/main/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +50,7 @@ class AuthGate extends StatelessWidget {
 
         // User is logged in.
         if (snapshot.hasData && snapshot.data != null) {
-          return const HomeScreen();
+          return const MainScreen();
         }
 
         // User is not logged in.
