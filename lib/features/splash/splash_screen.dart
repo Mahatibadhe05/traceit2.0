@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../auth/login_page.dart';
+
+import '../../core/theme/theme_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -12,16 +13,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+
     Future.delayed(
       const Duration(seconds: 2),
       () {
         if (!mounted) return;
 
-        Navigator.pushReplacement(
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => const LoginPage(),
-          ),
+          '/auth',
         );
       },
     );
@@ -31,8 +31,13 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // Use the saved theme directly.
+    final isDark = themeController.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : Colors.white,
       body: SafeArea(
         child: Center(
           child: Column(
@@ -45,22 +50,26 @@ class _SplashScreenState extends State<SplashScreen> {
 
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'TraceIt',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: isDark
+                      ? Colors.white
+                      : const Color(0xFF1F2937),
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              const Text(
+              Text(
                 'Never lose what matters.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF6B7280),
+                  color: isDark
+                      ? Colors.white70
+                      : const Color(0xFF6B7280),
                   letterSpacing: 0.4,
                 ),
               ),

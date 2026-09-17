@@ -9,19 +9,46 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFF);
+
+    final Color appBarColor = isDark
+        ? const Color(0xFF121212)
+        : Colors.white;
+
+    final Color textColor = isDark
+        ? Colors.white
+        : darkBlue;
+
+    final Color secondaryTextColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
+    final Color cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+
+    final Color iconBackgroundColor = isDark
+        ? const Color(0xFF263B66)
+        : const Color(0xFFE4EDFF);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: backgroundColor,
 
       // ================= APP BAR =================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
 
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: darkBlue,
+            color: textColor,
             size: Responsive.font(context, 6),
           ),
           onPressed: () {
@@ -32,7 +59,7 @@ class AboutPage extends StatelessWidget {
         title: Text(
           "About TraceIt",
           style: TextStyle(
-            color: darkBlue,
+            color: textColor,
             fontSize: Responsive.font(context, 5.65),
             fontWeight: FontWeight.bold,
           ),
@@ -57,7 +84,7 @@ class AboutPage extends StatelessWidget {
               height: Responsive.h(context, 90 / 844),
 
               decoration: BoxDecoration(
-                color: const Color(0xFFE4EDFF),
+                color: iconBackgroundColor,
                 borderRadius: BorderRadius.circular(
                   Responsive.radius(context, 24),
                 ),
@@ -81,7 +108,7 @@ class AboutPage extends StatelessWidget {
             child: Text(
               "TraceIt",
               style: TextStyle(
-                color: darkBlue,
+                color: textColor,
                 fontSize: Responsive.font(context, 7.18),
                 fontWeight: FontWeight.bold,
               ),
@@ -116,6 +143,10 @@ class AboutPage extends StatelessWidget {
             title: "About TraceIt",
             text:
                 "TraceIt is a smart item-finding system designed to help you locate and keep track of important belongings such as keys, bags, wallets and other everyday items.",
+            cardColor: cardColor,
+            textColor: textColor,
+            secondaryTextColor: secondaryTextColor,
+            iconBackgroundColor: iconBackgroundColor,
           ),
 
           SizedBox(
@@ -130,6 +161,10 @@ class AboutPage extends StatelessWidget {
             title: "What TraceIt Does",
             text:
                 "TraceIt connects your smart finder device with the mobile application to help you locate your belongings quickly using alerts, sound, vibration and location-based features.",
+            cardColor: cardColor,
+            textColor: textColor,
+            secondaryTextColor: secondaryTextColor,
+            iconBackgroundColor: iconBackgroundColor,
           ),
 
           SizedBox(
@@ -144,6 +179,10 @@ class AboutPage extends StatelessWidget {
             title: "Technology",
             text:
                 "TraceIt is built using modern mobile and embedded technologies, combining a smart hardware device with a Flutter-based mobile application.",
+            cardColor: cardColor,
+            textColor: textColor,
+            secondaryTextColor: secondaryTextColor,
+            iconBackgroundColor: iconBackgroundColor,
           ),
 
           SizedBox(
@@ -158,21 +197,23 @@ class AboutPage extends StatelessWidget {
             ),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cardColor,
 
               borderRadius: BorderRadius.circular(
                 Responsive.radius(context, 18),
               ),
 
               boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withValues(alpha: 0.06),
-                  blurRadius: Responsive.w(context, 12 / 390),
-                  offset: Offset(
-                    0,
-                    Responsive.h(context, 4 / 844),
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.06),
+                    blurRadius:
+                        Responsive.w(context, 12 / 390),
+                    offset: Offset(
+                      0,
+                      Responsive.h(context, 4 / 844),
+                    ),
                   ),
-                ),
               ],
             ),
 
@@ -195,26 +236,31 @@ class AboutPage extends StatelessWidget {
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
 
                       Text(
                         "App Version",
                         style: TextStyle(
-                          fontSize: Responsive.font(context, 4.1),
+                          color: textColor,
+                          fontSize:
+                              Responsive.font(context, 4.1),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
 
                       SizedBox(
-                        height: Responsive.h(context, 4 / 844),
+                        height:
+                            Responsive.h(context, 4 / 844),
                       ),
 
                       Text(
                         "Version 1.0.0",
                         style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: Responsive.font(context, 3.59),
+                          color: secondaryTextColor,
+                          fontSize:
+                              Responsive.font(context, 3.59),
                         ),
                       ),
                     ],
@@ -266,33 +312,43 @@ class AboutPage extends StatelessWidget {
     required IconData icon,
     required String title,
     required String text,
+    required Color cardColor,
+    required Color textColor,
+    required Color secondaryTextColor,
+    required Color iconBackgroundColor,
   }) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.all(
         Responsive.w(context, 18 / 390),
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
 
         borderRadius: BorderRadius.circular(
           Responsive.radius(context, 18),
         ),
 
         boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.06),
-            blurRadius: Responsive.w(context, 12 / 390),
-            offset: Offset(
-              0,
-              Responsive.h(context, 4 / 844),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.blue.withValues(alpha: 0.06),
+              blurRadius:
+                  Responsive.w(context, 12 / 390),
+              offset: Offset(
+                0,
+                Responsive.h(context, 4 / 844),
+              ),
             ),
-          ),
         ],
       ),
 
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
 
         children: [
 
@@ -303,7 +359,7 @@ class AboutPage extends StatelessWidget {
             height: Responsive.h(context, 46 / 844),
 
             decoration: BoxDecoration(
-              color: const Color(0xFFE4EDFF),
+              color: iconBackgroundColor,
 
               borderRadius: BorderRadius.circular(
                 Responsive.radius(context, 14),
@@ -325,27 +381,32 @@ class AboutPage extends StatelessWidget {
 
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
 
               children: [
 
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: Responsive.font(context, 4.1),
+                    color: textColor,
+                    fontSize:
+                        Responsive.font(context, 4.1),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
 
                 SizedBox(
-                  height: Responsive.h(context, 7 / 844),
+                  height:
+                      Responsive.h(context, 7 / 844),
                 ),
 
                 Text(
                   text,
                   style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: Responsive.font(context, 3.33),
+                    color: secondaryTextColor,
+                    fontSize:
+                        Responsive.font(context, 3.33),
                     height: 1.45,
                   ),
                 ),

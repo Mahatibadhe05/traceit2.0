@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'features/auth/login_page.dart';
 import 'features/main/main_screen.dart';
+import 'features/splash/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +15,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Load the saved light/dark mode before the app starts.
+  await themeController.loadSavedTheme();
 
   runApp(const MyApp());
 }
@@ -22,11 +27,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'TraceIt',
-      theme: AppTheme.lightTheme,
-      home: const AuthGate(),
+    return AnimatedBuilder(
+      animation: themeController,
+      builder: (context, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'TraceIt',
+
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+
+          themeMode: themeController.isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
+
+          // Show Splash Screen first.
+          home: const SplashScreen(),
+
+          // Splash Screen moves here after 2 seconds.
+          routes: {
+            '/auth': (_) => const AuthGate(),
+          },
+        );
+      },
     );
   }
 }

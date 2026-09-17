@@ -15,4 +15,15 @@ class AppTheme {
       brightness: Brightness.light,
     ),
   );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+
+    scaffoldBackgroundColor: const Color(0xFF121212),
+
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.dark,
+    ),
+  );
 }

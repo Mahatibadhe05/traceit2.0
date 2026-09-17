@@ -258,9 +258,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
       'Anti-Theft',
     ];
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor:
+          isDark ? const Color(0xFF1E1E1E) : Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -281,22 +285,26 @@ class _AlertsScreenState extends State<AlertsScreen> {
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Filter Alerts',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF263247),
+                    color: isDark
+                        ? Colors.white
+                        : const Color(0xFF263247),
                   ),
                 ),
 
                 const SizedBox(height: 8),
 
-                const Text(
+                Text(
                   'Select an alert category',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF8495AE),
+                    color: isDark
+                        ? Colors.white70
+                        : const Color(0xFF8495AE),
                   ),
                 ),
 
@@ -335,7 +343,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     : Icons.radio_button_off,
                                 color: isSelected
                                     ? const Color(0xFF6C63FF)
-                                    : const Color(0xFF8A97AA),
+                                    : isDark
+                                        ? Colors.white54
+                                        : const Color(
+                                            0xFF8A97AA,
+                                          ),
                                 size: 24,
                               ),
 
@@ -349,9 +361,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     fontWeight: isSelected
                                         ? FontWeight.w700
                                         : FontWeight.w500,
-                                    color: const Color(
-                                      0xFF263247,
-                                    ),
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(
+                                            0xFF263247,
+                                          ),
                                   ),
                                 ),
                               ),
@@ -359,7 +373,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                               if (isSelected)
                                 const Icon(
                                   Icons.check,
-                                  color: Color(0xFF6C63FF),
+                                  color:
+                                      Color(0xFF6C63FF),
                                   size: 22,
                                 ),
                             ],
@@ -392,9 +407,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
             time: alert.time,
             icon: alert.icon,
             iconColor: alert.iconColor,
-
-            // FIX:
-            // AlertDetailsScreen requires this parameter.
             backgroundColor: alert.backgroundColor,
           );
         },
@@ -411,6 +423,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
     final width =
         MediaQuery.of(context).size.width;
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     final horizontalPadding =
         width < 600 ? 22.0 : 32.0;
 
@@ -421,8 +436,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
         width < 600 ? 20.0 : 24.0;
 
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF7F8FC),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF7F8FC),
 
       body: SafeArea(
         child: Column(
@@ -433,7 +449,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
             Container(
               width: double.infinity,
-              color: Colors.white,
+              color: isDark
+                  ? const Color(0xFF181818)
+                  : Colors.white,
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
                 14,
@@ -447,7 +465,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
                     style: TextStyle(
                       fontSize: titleSize,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1F2937),
+                      color: isDark
+                          ? Colors.white
+                          : const Color(0xFF1F2937),
                     ),
                   ),
 
@@ -455,13 +475,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
 
                   TextButton.icon(
                     onPressed: _showFilterMenu,
-
                     icon: const Icon(
                       Icons.filter_alt_outlined,
                       size: 22,
                       color: Color(0xFF6C63FF),
                     ),
-
                     label: Text(
                       _selectedFilter == 'All Alerts'
                           ? 'Filter'
@@ -527,14 +545,17 @@ class _AlertsScreenState extends State<AlertsScreen> {
                               height: 12,
                             ),
 
-                            const Text(
+                            Text(
                               'Unable to load alerts',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight:
                                     FontWeight.w700,
-                                color:
-                                    Color(0xFF263247),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(
+                                        0xFF263247,
+                                      ),
                               ),
                             ),
 
@@ -546,11 +567,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
                               '${snapshot.error}',
                               textAlign:
                                   TextAlign.center,
-                              style:
-                                  const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color:
-                                    Color(0xFF8495AE),
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(
+                                        0xFF8495AE,
+                                      ),
                               ),
                             ),
                           ],
@@ -615,7 +638,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       horizontalPadding,
                       30,
                     ),
-
                     children: [
                       Row(
                         children: [
@@ -627,10 +649,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     sectionSize,
                                 fontWeight:
                                     FontWeight.w700,
-                                color:
-                                    const Color(
-                                  0xFF263247,
-                                ),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(
+                                        0xFF263247,
+                                      ),
                               ),
                             ),
                           ),
@@ -671,32 +694,47 @@ class _AlertsScreenState extends State<AlertsScreen> {
                           return Padding(
                             padding:
                                 EdgeInsets.only(
-                              bottom:
-                                  index ==
-                                          alerts.length -
-                                              1
-                                      ? 0
-                                      : 16,
+                              bottom: index ==
+                                      alerts.length -
+                                          1
+                                  ? 0
+                                  : 16,
                             ),
                             child: _AlertCard(
                               alert: alert,
-                              isUnread: _unreadAlertIds.contains(alert.id),
+                              isUnread:
+                                  _unreadAlertIds
+                                      .contains(
+                                alert.id,
+                              ),
                               onTap: () {
                                 setState(() {
-                                  _unreadAlertIds.remove(alert.id);
+                                  _unreadAlertIds
+                                      .remove(
+                                    alert.id,
+                                  );
                                 });
 
                                 _openAlert(alert);
                               },
                               onLongPress: () {
                                 setState(() {
-                                  _unreadAlertIds.add(alert.id);
+                                  _unreadAlertIds.add(
+                                    alert.id,
+                                  );
                                 });
 
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Alert marked as unread'),
-                                    duration: Duration(seconds: 2),
+                                    content: Text(
+                                      'Alert marked as unread',
+                                    ),
+                                    duration:
+                                        Duration(
+                                      seconds: 2,
+                                    ),
                                   ),
                                 );
                               },
@@ -768,6 +806,9 @@ class _AlertCard extends StatelessWidget {
     final width =
         MediaQuery.of(context).size.width;
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     final cardPadding =
         width < 600 ? 14.0 : 20.0;
 
@@ -781,11 +822,14 @@ class _AlertCard extends StatelessWidget {
         width < 600 ? 14.0 : 16.0;
 
     return Material(
-      color: Colors.white,
+      color: isDark
+          ? const Color(0xFF1E1E1E)
+          : Colors.white,
       borderRadius:
           BorderRadius.circular(20),
-      elevation: 1,
-      shadowColor: Colors.black12,
+      elevation: isDark ? 0 : 1,
+      shadowColor:
+          isDark ? Colors.transparent : Colors.black12,
 
       child: InkWell(
         borderRadius:
@@ -831,21 +875,35 @@ class _AlertCard extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            margin: const EdgeInsets.only(right: 7),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF6C63FF),
-                              shape: BoxShape.circle,
+                            margin:
+                                const EdgeInsets.only(
+                              right: 7,
+                            ),
+                            decoration:
+                                const BoxDecoration(
+                              color:
+                                  Color(0xFF6C63FF),
+                              shape:
+                                  BoxShape.circle,
                             ),
                           ),
+
                         Expanded(
                           child: Text(
                             alert.title,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                                TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF263247),
+                              fontSize:
+                                  titleSize,
+                              fontWeight:
+                                  FontWeight.w700,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(
+                                      0xFF263247,
+                                    ),
                             ),
                           ),
                         ),
@@ -858,10 +916,11 @@ class _AlertCard extends StatelessWidget {
                       alert.device,
                       style: TextStyle(
                         fontSize: deviceSize,
-                        color:
-                            const Color(
-                          0xFF8495AE,
-                        ),
+                        color: isDark
+                            ? Colors.white70
+                            : const Color(
+                                0xFF8495AE,
+                              ),
                         fontWeight:
                             FontWeight.w500,
                       ),
@@ -871,22 +930,25 @@ class _AlertCard extends StatelessWidget {
 
                     Text(
                       alert.time,
-                      style:
-                          const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color:
-                            Color(0xFF9AA9BD),
+                        color: isDark
+                            ? Colors.white54
+                            : const Color(
+                                0xFF9AA9BD,
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 28,
-                color:
-                    Color(0xFF71829A),
+                color: isDark
+                    ? Colors.white54
+                    : const Color(0xFF71829A),
               ),
             ],
           ),
@@ -912,6 +974,9 @@ class _EmptyAlerts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding:
           const EdgeInsets.symmetric(
@@ -921,23 +986,25 @@ class _EmptyAlerts extends StatelessWidget {
 
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.notifications_none,
             size: 50,
-            color:
-                Color(0xFF9AA9BD),
+            color: isDark
+                ? Colors.white54
+                : const Color(0xFF9AA9BD),
           ),
 
           const SizedBox(height: 12),
 
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight:
                   FontWeight.w600,
-              color:
-                  Color(0xFF263247),
+              color: isDark
+                  ? Colors.white
+                  : const Color(0xFF263247),
             ),
           ),
 
@@ -947,10 +1014,11 @@ class _EmptyAlerts extends StatelessWidget {
             subtitle,
             textAlign:
                 TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color:
-                  Color(0xFF8495AE),
+              color: isDark
+                  ? Colors.white70
+                  : const Color(0xFF8495AE),
             ),
           ),
         ],

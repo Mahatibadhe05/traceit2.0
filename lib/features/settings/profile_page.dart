@@ -156,18 +156,36 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final pageBackground = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF7F9FC);
+
+    final primaryText = isDark
+        ? Colors.white
+        : textDark;
+
+    final secondaryText = isDark
+        ? Colors.white70
+        : textGrey;
+
+    final profileIconBackground = isDark
+        ? const Color(0xFF263B66)
+        : lightBlue;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: pageBackground,
 
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F9FC),
+        backgroundColor: pageBackground,
         elevation: 0,
         scrolledUnderElevation: 0,
 
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: textDark,
+            color: primaryText,
             size: Responsive.w(
               context,
               24 / 390,
@@ -181,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text(
           'Profile',
           style: TextStyle(
-            color: textDark,
+            color: primaryText,
             fontSize: Responsive.font(
               context,
               20 * 100 / 390,
@@ -246,7 +264,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                             decoration:
                                 BoxDecoration(
-                              color: lightBlue,
+                              color: profileIconBackground,
                               shape: BoxShape.circle,
                             ),
 
@@ -275,7 +293,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 TextAlign.center,
 
                             style: TextStyle(
-                              color: textDark,
+                              color: primaryText,
                               fontSize:
                                   Responsive.font(
                                 context,
@@ -300,7 +318,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 TextAlign.center,
 
                             style: TextStyle(
-                              color: textGrey,
+                              color: secondaryText,
                               fontSize:
                                   Responsive.font(
                                 context,
@@ -499,11 +517,13 @@ class _ProfilePageState extends State<ProfilePage> {
     BuildContext context, {
     required List<Widget> children,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
 
         borderRadius:
             BorderRadius.circular(
@@ -514,11 +534,12 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
 
         boxShadow: [
-          BoxShadow(
-            color:
-                Colors.black.withValues(
-              alpha: 0.04,
-            ),
+          if (!isDark)
+            BoxShadow(
+              color:
+                  Colors.black.withValues(
+                alpha: 0.04,
+              ),
 
             blurRadius:
                 Responsive.w(
@@ -554,6 +575,13 @@ class _ProfilePageState extends State<ProfilePage> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rowTextColor = isDark ? Colors.white : textDark;
+    final rowSecondaryColor = isDark ? Colors.white70 : textGrey;
+    final rowIconBackground = isDark
+        ? const Color(0xFF263B66)
+        : lightBlue;
+
     return InkWell(
       onTap: onTap,
 
@@ -598,7 +626,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               decoration:
                   BoxDecoration(
-                color: lightBlue,
+                color: rowIconBackground,
 
                 borderRadius:
                     BorderRadius.circular(
@@ -641,7 +669,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     title,
 
                     style: TextStyle(
-                      color: textDark,
+                      color: rowTextColor,
 
                       fontSize:
                           Responsive.font(
@@ -671,7 +699,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         TextOverflow.ellipsis,
 
                     style: TextStyle(
-                      color: textGrey,
+                      color: rowSecondaryColor,
 
                       fontSize:
                           Responsive.font(
@@ -1010,16 +1038,18 @@ class _ProfilePageState extends State<ProfilePage> {
   // ============================================================
 
   void _showAbout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
 
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor:
-              Colors.white,
+              isDark ? const Color(0xFF1E1E1E) : Colors.white,
 
           surfaceTintColor:
-              Colors.white,
+              Colors.transparent,
 
           insetPadding:
               EdgeInsets.symmetric(
@@ -1266,12 +1296,21 @@ class _EditTextDialogState
   Widget build(
     BuildContext context,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputTextColor = isDark ? Colors.white : Colors.black87;
+    final inputFillColor = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFF7F9FC);
+    final inputBorderColor = isDark
+        ? Colors.white24
+        : Colors.grey.shade300;
+
     return AlertDialog(
       backgroundColor:
-          Colors.white,
+          isDark ? const Color(0xFF1E1E1E) : Colors.white,
 
       surfaceTintColor:
-          Colors.white,
+          Colors.transparent,
 
       insetPadding:
           EdgeInsets.symmetric(
@@ -1333,7 +1372,7 @@ class _EditTextDialogState
 
           style: TextStyle(
             color:
-                Colors.black87,
+                inputTextColor,
 
             fontSize:
                 Responsive.font(
@@ -1362,9 +1401,7 @@ class _EditTextDialogState
             filled: true,
 
             fillColor:
-                const Color(
-              0xFFF7F9FC,
-            ),
+                inputFillColor,
 
             enabledBorder:
                 OutlineInputBorder(
@@ -1379,7 +1416,7 @@ class _EditTextDialogState
               borderSide:
                   BorderSide(
                 color:
-                    Colors.grey.shade300,
+                    inputBorderColor,
               ),
             ),
 
@@ -1769,6 +1806,10 @@ class _ChangePasswordDialogState
     required bool obscureText,
     required VoidCallback onToggle,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fieldTextColor = isDark ? Colors.white : Colors.black87;
+    final labelColor = isDark ? Colors.white70 : Colors.grey.shade600;
+
     return TextField(
       controller: controller,
 
@@ -1780,7 +1821,7 @@ class _ChangePasswordDialogState
 
       style: TextStyle(
         color:
-            Colors.black87,
+            fieldTextColor,
 
         fontSize:
             Responsive.font(
@@ -1797,7 +1838,7 @@ class _ChangePasswordDialogState
         labelStyle:
             TextStyle(
           color:
-              Colors.grey.shade600,
+              labelColor,
 
           fontSize:
               Responsive.font(
@@ -1819,7 +1860,7 @@ class _ChangePasswordDialogState
                     .visibility_outlined,
 
             color:
-                Colors.grey.shade600,
+                labelColor,
           ),
         ),
 
@@ -1868,12 +1909,14 @@ class _ChangePasswordDialogState
   Widget build(
     BuildContext context,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AlertDialog(
       backgroundColor:
-          Colors.white,
+          isDark ? const Color(0xFF1E1E1E) : Colors.white,
 
       surfaceTintColor:
-          Colors.white,
+          Colors.transparent,
 
       insetPadding:
           EdgeInsets.symmetric(

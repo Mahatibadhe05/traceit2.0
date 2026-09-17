@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/device_service.dart';
 
@@ -24,23 +28,115 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DeviceService _deviceService = DeviceService();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
 
   List<DeviceModel> devices = [];
   bool isLoading = true;
+
+  // ============================================================
+  // USER NAME
+  // ============================================================
+
+  String userName = "User";
+
+  StreamSubscription<
+      DocumentSnapshot<Map<String, dynamic>>>?
+      _userNameSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadDevices();
+    _listenToUserName();
   }
+
+  // ============================================================
+  // LISTEN TO USER NAME FROM FIRESTORE
+  // ============================================================
+
+  void _listenToUserName() {
+    final User? user = _auth.currentUser;
+
+    if (user == null) {
+      return;
+    }
+
+    _userNameSubscription = _firestore
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        String name = '';
+
+        if (snapshot.exists) {
+          final Map<String, dynamic>? data =
+              snapshot.data();
+
+          if (data != null) {
+            name =
+                data['name']?.toString().trim() ?? '';
+          }
+        }
+
+        // Fallback to Firebase Auth display name
+        if (name.isEmpty) {
+          name = user.displayName?.trim() ?? '';
+        }
+
+        // Final fallback
+        if (name.isEmpty) {
+          name = 'User';
+        }
+
+        if (!mounted) return;
+
+        setState(() {
+          userName = name;
+        });
+      },
+      onError: (error) {
+        debugPrint(
+          'Error listening to user name: $error',
+        );
+
+        if (!mounted) return;
+
+        final authName =
+            user.displayName?.trim() ?? '';
+
+        setState(() {
+          userName =
+              authName.isNotEmpty
+                  ? authName
+                  : 'User';
+        });
+      },
+    );
+  }
+
+  // ============================================================
+  // DISPOSE
+  // ============================================================
+
+  @override
+  void dispose() {
+    _userNameSubscription?.cancel();
+    super.dispose();
+  }
+
+  // ============================================================
+  // LOAD DEVICES
+  // ============================================================
 
   Future<void> _loadDevices() async {
     try {
-      final loadedDevices = await _deviceService.getDevices();
-
+      final loadedDevices =
+          await _deviceService.getDevices();
 
       if (!mounted) return;
-
 
       setState(() {
         devices = loadedDevices;
@@ -49,11 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
 
-
       setState(() {
         isLoading = false;
       });
-
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -65,21 +159,23 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ============================================================
+  // DELETE DEVICE
+  // ============================================================
 
   Future<void> _deleteDevice(String id) async {
     try {
       await _deviceService.deleteDevice(id);
 
-
       if (!mounted) return;
 
-
       setState(() {
-        devices.removeWhere((d) => d.id == id);
+        devices.removeWhere(
+          (d) => d.id == id,
+        );
       });
     } catch (e) {
       if (!mounted) return;
-
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -91,13 +187,18 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _testLocation(DeviceModel device) async {
+  // ============================================================
+  // TEST LOCATION
+  // ============================================================
+
+  Future<void> _testLocation(
+    DeviceModel device,
+  ) async {
     const testLocation = LocationModel(
       latitude: 19.0760,
       longitude: 72.8777,
       accuracy: 10.0,
     );
-
 
     try {
       await _deviceService.updateLocation(
@@ -105,26 +206,31 @@ class _HomeScreenState extends State<HomeScreen> {
         location: testLocation,
       );
 
-
       if (!mounted) return;
-
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Test location saved successfully!'),
+          content: Text(
+            'Test location saved successfully!',
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
 
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to save test location: $e'),
+          content: Text(
+            'Failed to save test location: $e',
+          ),
         ),
       );
     }
   }
+
+  // ============================================================
+  // RENAME DEVICE
+  // ============================================================
 
   Future<void> _renameDevice(
     String id,
@@ -134,12 +240,9 @@ class _HomeScreenState extends State<HomeScreen> {
       (device) => device.id == id,
     );
 
-
     if (index == -1) return;
 
-
     final oldDevice = devices[index];
-
 
     final updatedDevice = DeviceModel(
       id: oldDevice.id,
@@ -154,20 +257,18 @@ class _HomeScreenState extends State<HomeScreen> {
       geoLinkerId: oldDevice.geoLinkerId,
     );
 
-
     try {
-      await _deviceService.updateDevice(updatedDevice);
-
+      await _deviceService.updateDevice(
+        updatedDevice,
+      );
 
       if (!mounted) return;
-
 
       setState(() {
         devices[index] = updatedDevice;
       });
     } catch (e) {
       if (!mounted) return;
-
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -179,8 +280,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ============================================================
+  // ADD DEVICE
+  // ============================================================
+
   Future<void> _navigateToAddDevice() async {
-    final result = await Navigator.push<Map<String, dynamic>>(
+    final result =
+        await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (_) => AddDeviceScreen(
@@ -189,12 +295,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-
     if (result == null) return;
 
-
     final device = DeviceModel(
-      id: "esp32${DateTime.now().millisecondsSinceEpoch}",
+      id:
+          "esp32${DateTime.now().millisecondsSinceEpoch}",
       name: result["name"] ?? "NO NAME",
       connected: true,
       battery: 82,
@@ -212,20 +317,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-
     try {
       await _deviceService.addDevice(device);
 
-
       if (!mounted) return;
-
 
       setState(() {
         devices.add(device);
       });
     } catch (e) {
       if (!mounted) return;
-
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -237,7 +338,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String userName = "Mahati";
+  // ============================================================
+  // GREETING
+  // ============================================================
 
   String getGreeting() {
     final hour = DateTime.now().hour;
@@ -251,12 +354,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // ============================================================
+  // SUBTITLE
+  // ============================================================
+
   String getSubtitle() {
     if (devices.isEmpty) {
       return "Add your first smart tracker.";
     }
 
-    final connected = devices.where((d) => d.connected).length;
+    final connected =
+        devices.where((d) => d.connected).length;
 
     if (connected == devices.length) {
       return "All your devices are connected.";
@@ -265,169 +373,319 @@ class _HomeScreenState extends State<HomeScreen> {
     return "$connected of ${devices.length} devices are connected.";
   }
 
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness ==
+            Brightness.dark;
+
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        backgroundColor:
+            isDark
+                ? const Color(0xFF121212)
+                : AppColors.background,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor:
+          isDark
+              ? const Color(0xFF121212)
+              : Colors.white,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: [
-              0.0,
-              0.38,
-              1.0,
-            ],
-            colors: [
-              Color(0xFFEAF4FF),
-              Color(0xFFF8FBFF),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Responsive.w(context, 0.03),
-          ),
-          child: Column(
-            children: [
-              SizedBox(height: Responsive.h(context, 0.04)),
-              
-              DashboardHeader(
-                hasDevice: devices.isNotEmpty,
-                onAddDevice: _navigateToAddDevice,
-              ),
-
-              SizedBox(height: Responsive.h(context, 0.025)),
-
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(context, 0.045),
-                  vertical: Responsive.h(context, 0.018),
-                ),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFFEAF2FF),
-                      Color(0xFFF4F0FF),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    Responsive.radius(context, 22),
-                  ),
-                  border: Border.all(
-                    color: const Color(0xFFE2E9F8),
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "${getGreeting()}, $userName",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.sectionTitle(context).copyWith(
-                        fontSize: Responsive.font(context, 4.8),
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF111827),
-                      ),
-                    ),
-
-                    SizedBox(
-                      height: Responsive.h(context, 0.007),
-                    ),
-
-                    Text(
-                      getSubtitle(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.subtitle(context).copyWith(
-                        fontSize: Responsive.font(context, 3.2),
-                        color: const Color(0xFF667085),
-                      ),
-                    ),
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [
+                    0.0,
+                    0.38,
+                    1.0,
+                  ],
+                  colors: [
+                    Color(0xFF18243A),
+                    Color(0xFF151A24),
+                    Color(0xFF121212),
+                  ],
+                )
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [
+                    0.0,
+                    0.38,
+                    1.0,
+                  ],
+                  colors: [
+                    Color(0xFFEAF4FF),
+                    Color(0xFFF8FBFF),
+                    Colors.white,
                   ],
                 ),
-              ),
-
-              SizedBox(height: Responsive.h(context, 0.03)),
-
-              if (devices.isNotEmpty) ...[
-                StatsChips(
-                  deviceCount: devices.length,
-                  connectedCount: devices.where((d) => d.connected).length,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal:
+                  Responsive.w(context, 0.03),
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height:
+                      Responsive.h(context, 0.04),
                 ),
 
-                SizedBox(height: Responsive.h(context, 0.02)),
+                // ==================================================
+                // DASHBOARD HEADER
+                // ==================================================
 
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: devices.length,
-                    itemBuilder: (context, index) {
-                      final device = devices[index];
-                      return DeviceCard(
-                        deviceName: device.name,
-                        imagePath: device.imagePath,
-                        connected: device.connected,
-                        battery: device.battery,
-                        lastSeen: device.lastSeen,
-                        signal: device.signal,
-                      
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DeviceOverviewScreen(
-                                device: device,
-                                onDelete: () {
-                                  _deleteDevice(device.id);
-                                },
-                                onRename: (newName) {
-                                  _renameDevice(
-                                    device.id,
-                                    newName,
-                                  );
-                                },
-                              ),
+                DashboardHeader(
+                  hasDevice: devices.isNotEmpty,
+                  onAddDevice:
+                      _navigateToAddDevice,
+                ),
+
+                SizedBox(
+                  height:
+                      Responsive.h(context, 0.025),
+                ),
+
+                // ==================================================
+                // GREETING CARD
+                // ==================================================
+
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal:
+                        Responsive.w(
+                      context,
+                      0.045,
+                    ),
+                    vertical:
+                        Responsive.h(
+                      context,
+                      0.018,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: isDark
+                        ? const LinearGradient(
+                            begin:
+                                Alignment.topLeft,
+                            end:
+                                Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF1E2B45),
+                              Color(0xFF252038),
+                            ],
+                          )
+                        : const LinearGradient(
+                            begin:
+                                Alignment.topLeft,
+                            end:
+                                Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFEAF2FF),
+                              Color(0xFFF4F0FF),
+                            ],
+                          ),
+                    borderRadius:
+                        BorderRadius.circular(
+                      Responsive.radius(
+                        context,
+                        22,
+                      ),
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(
+                              0xFF344563,
+                            )
+                          : const Color(
+                              0xFFE2E9F8,
                             ),
-                          );
-                        },
-                      
-                        onDelete: () {
-                          _deleteDevice(device.id);
-                        },
-                      
-                        onRename: (newName) {
-                          _renameDevice(
-                            device.id,
-                            newName,
-                          );
-                        },
-                      );
-                    },
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${getGreeting()}, $userName",
+                        maxLines: 1,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style:
+                            AppTextStyles
+                                .sectionTitle(
+                          context,
+                        ).copyWith(
+                          fontSize:
+                              Responsive.font(
+                            context,
+                            4.8,
+                          ),
+                          fontWeight:
+                              FontWeight.w700,
+                          color: isDark
+                              ? Colors.white
+                              : const Color(
+                                  0xFF111827,
+                                ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height:
+                            Responsive.h(
+                          context,
+                          0.007,
+                        ),
+                      ),
+
+                      Text(
+                        getSubtitle(),
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style:
+                            AppTextStyles.subtitle(
+                          context,
+                        ).copyWith(
+                          fontSize:
+                              Responsive.font(
+                            context,
+                            3.2,
+                          ),
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(
+                                  0xFF667085,
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ] else
-                Expanded(
-                  child: EmptyState(
-                    onAddDevice: _navigateToAddDevice,
+
+                SizedBox(
+                  height:
+                      Responsive.h(
+                    context,
+                    0.03,
                   ),
                 ),
-            ],
-          ),
+
+                // ==================================================
+                // STATS + DEVICES
+                // ==================================================
+
+                if (devices.isNotEmpty) ...[
+                  StatsChips(
+                    deviceCount:
+                        devices.length,
+                    connectedCount:
+                        devices
+                            .where(
+                              (d) => d.connected,
+                            )
+                            .length,
+                  ),
+
+                  SizedBox(
+                    height:
+                        Responsive.h(
+                      context,
+                      0.02,
+                    ),
+                  ),
+
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount:
+                          devices.length,
+                      itemBuilder:
+                          (context, index) {
+                        final device =
+                            devices[index];
+
+                        return DeviceCard(
+                          deviceName:
+                              device.name,
+                          imagePath:
+                              device.imagePath,
+                          connected:
+                              device.connected,
+                          battery:
+                              device.battery,
+                          lastSeen:
+                              device.lastSeen,
+                          signal:
+                              device.signal,
+
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    DeviceOverviewScreen(
+                                  device:
+                                      device,
+                                  onDelete: () {
+                                    _deleteDevice(
+                                      device.id,
+                                    );
+                                  },
+                                  onRename:
+                                      (newName) {
+                                    _renameDevice(
+                                      device.id,
+                                      newName,
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+
+                          onDelete: () {
+                            _deleteDevice(
+                              device.id,
+                            );
+                          },
+
+                          onRename:
+                              (newName) {
+                            _renameDevice(
+                              device.id,
+                              newName,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ] else
+                  Expanded(
+                    child: EmptyState(
+                      onAddDevice:
+                          _navigateToAddDevice,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

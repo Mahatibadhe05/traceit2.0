@@ -9,19 +9,34 @@ class HelpFaqPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFF);
+
+    final Color appBarColor = isDark
+        ? const Color(0xFF121212)
+        : Colors.white;
+
+    final Color titleColor = isDark
+        ? Colors.white
+        : darkBlue;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: backgroundColor,
 
       // ================= APP BAR =================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
 
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: darkBlue,
+            color: titleColor,
             size: Responsive.font(context, 6),
           ),
           onPressed: () {
@@ -32,7 +47,7 @@ class HelpFaqPage extends StatelessWidget {
         title: Text(
           "Help & FAQ",
           style: TextStyle(
-            color: darkBlue,
+            color: titleColor,
             fontSize: Responsive.font(context, 5.65),
             fontWeight: FontWeight.bold,
           ),
@@ -151,27 +166,43 @@ class HelpFaqPage extends StatelessWidget {
     String question,
     String answer,
   ) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+
+    final Color questionColor = isDark
+        ? Colors.white
+        : darkBlue;
+
+    final Color answerColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
     return Container(
       margin: EdgeInsets.only(
         bottom: Responsive.h(context, 12 / 844),
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
 
         borderRadius: BorderRadius.circular(
           Responsive.radius(context, 16),
         ),
 
         boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.06),
-            blurRadius: Responsive.w(context, 10 / 390),
-            offset: Offset(
-              0,
-              Responsive.h(context, 3 / 844),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.blue.withValues(alpha: 0.06),
+              blurRadius: Responsive.w(context, 10 / 390),
+              offset: Offset(
+                0,
+                Responsive.h(context, 3 / 844),
+              ),
             ),
-          ),
         ],
       ),
 
@@ -188,7 +219,7 @@ class HelpFaqPage extends StatelessWidget {
         title: Text(
           question,
           style: TextStyle(
-            color: darkBlue,
+            color: questionColor,
             fontSize: Responsive.font(context, 3.85),
             fontWeight: FontWeight.w600,
           ),
@@ -209,7 +240,7 @@ class HelpFaqPage extends StatelessWidget {
               child: Text(
                 answer,
                 style: TextStyle(
-                  color: Colors.black54,
+                  color: answerColor,
                   fontSize: Responsive.font(context, 3.33),
                   height: 1.5,
                 ),

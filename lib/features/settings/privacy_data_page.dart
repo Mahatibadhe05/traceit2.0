@@ -9,26 +9,49 @@ class PrivacyDataPage extends StatelessWidget {
     const Color primaryBlue = Color(0xFF1769FF);
     const Color darkBlue = Color(0xFF14244A);
 
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFF);
+
+    final Color appBarColor = isDark
+        ? const Color(0xFF121212)
+        : Colors.white;
+
+    final Color cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+
+    final Color titleColor = isDark
+        ? Colors.white
+        : darkBlue;
+
+    final Color descriptionColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: backgroundColor,
 
       // ================= APP BAR =================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
 
         title: Text(
           "Privacy & Data",
           style: TextStyle(
-            color: darkBlue,
+            color: titleColor,
             fontSize: Responsive.font(context, 5.65),
             fontWeight: FontWeight.bold,
           ),
         ),
 
         iconTheme: IconThemeData(
-          color: darkBlue,
+          color: titleColor,
           size: Responsive.font(context, 6),
         ),
       ),
@@ -128,6 +151,21 @@ class PrivacyDataPage extends StatelessWidget {
     required String description,
     required Color color,
   }) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+
+    final Color titleColor = isDark
+        ? Colors.white
+        : const Color(0xFF222222);
+
+    final Color descriptionColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
     return Container(
       width: double.infinity,
 
@@ -136,21 +174,22 @@ class PrivacyDataPage extends StatelessWidget {
       ),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
 
         borderRadius: BorderRadius.circular(
           Responsive.radius(context, 18),
         ),
 
         boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.06),
-            blurRadius: Responsive.w(context, 12 / 390),
-            offset: Offset(
-              0,
-              Responsive.h(context, 4 / 844),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.blue.withValues(alpha: 0.06),
+              blurRadius: Responsive.w(context, 12 / 390),
+              offset: Offset(
+                0,
+                Responsive.h(context, 4 / 844),
+              ),
             ),
-          ),
         ],
       ),
 
@@ -182,6 +221,7 @@ class PrivacyDataPage extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
+                    color: titleColor,
                     fontSize: Responsive.font(context, 4.1),
                     fontWeight: FontWeight.w600,
                   ),
@@ -194,7 +234,7 @@ class PrivacyDataPage extends StatelessWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: descriptionColor,
                     fontSize: Responsive.font(context, 3.33),
                     height: 1.4,
                   ),

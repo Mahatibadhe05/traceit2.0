@@ -22,6 +22,43 @@ class AlertDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
 
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    // ==========================================================
+    // THEME COLORS
+    // ==========================================================
+
+    final pageBackground =
+        isDark
+            ? const Color(0xFF121212)
+            : const Color(0xFFF7F8FC);
+
+    final surfaceColor =
+        isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white;
+
+    final primaryText =
+        isDark
+            ? Colors.white
+            : const Color(0xFF263247);
+
+    final secondaryText =
+        isDark
+            ? Colors.white70
+            : const Color(0xFF8495AE);
+
+    final tertiaryText =
+        isDark
+            ? Colors.white54
+            : const Color(0xFF9AA9BD);
+
+    final dividerColor =
+        isDark
+            ? Colors.white24
+            : Colors.grey.shade300;
+
     final horizontalPadding =
         width < 600 ? 22.0 : 40.0;
 
@@ -29,36 +66,47 @@ class AlertDetailsScreen extends StatelessWidget {
         width < 600 ? 90.0 : 120.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: pageBackground,
+
+      // ==========================================================
+      // APP BAR
+      // ==========================================================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: surfaceColor,
         elevation: 0,
 
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: Color(0xFF263247),
+            color: primaryText,
           ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
 
-        title: const Text(
+        title: Text(
           'Alert Details',
           style: TextStyle(
-            color: Color(0xFF263247),
+            color: primaryText,
             fontWeight: FontWeight.w700,
           ),
         ),
       ),
 
+      // ==========================================================
+      // BODY
+      // ==========================================================
+
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(horizontalPadding),
+        padding: EdgeInsets.all(
+          horizontalPadding,
+        ),
 
         child: Column(
           children: [
+
             // ==================================================
             // ALERT ICON
             // ==================================================
@@ -68,8 +116,14 @@ class AlertDetailsScreen extends StatelessWidget {
               height: iconSize,
 
               decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(28),
+                color: isDark
+                    ? Color.alphaBlend(
+                        iconColor.withOpacity(0.12),
+                        const Color(0xFF1E1E1E),
+                      )
+                    : backgroundColor,
+                borderRadius:
+                    BorderRadius.circular(28),
               ),
 
               child: Icon(
@@ -90,9 +144,10 @@ class AlertDetailsScreen extends StatelessWidget {
               textAlign: TextAlign.center,
 
               style: TextStyle(
-                fontSize: width < 600 ? 26 : 32,
+                fontSize:
+                    width < 600 ? 26 : 32,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF263247),
+                color: primaryText,
               ),
             ),
 
@@ -105,8 +160,9 @@ class AlertDetailsScreen extends StatelessWidget {
             Text(
               device,
               style: TextStyle(
-                fontSize: width < 600 ? 17 : 20,
-                color: const Color(0xFF8495AE),
+                fontSize:
+                    width < 600 ? 17 : 20,
+                color: secondaryText,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -119,9 +175,9 @@ class AlertDetailsScreen extends StatelessWidget {
 
             Text(
               time,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF9AA9BD),
+                color: tertiaryText,
               ),
             ),
 
@@ -139,18 +195,22 @@ class AlertDetailsScreen extends StatelessWidget {
               ),
 
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: surfaceColor,
 
                 borderRadius:
                     BorderRadius.circular(20),
 
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                boxShadow: isDark
+                    ? []
+                    : const [
+                        BoxShadow(
+                          color:
+                              Color(0x12000000),
+                          blurRadius: 12,
+                          offset:
+                              Offset(0, 4),
+                        ),
+                      ],
               ),
 
               child: Column(
@@ -158,37 +218,69 @@ class AlertDetailsScreen extends StatelessWidget {
                     CrossAxisAlignment.start,
 
                 children: [
-                  const Text(
+
+                  // ==================================================
+                  // CARD TITLE
+                  // ==================================================
+
+                  Text(
                     'Alert Information',
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF263247),
+                      fontWeight:
+                          FontWeight.w700,
+                      color: primaryText,
                     ),
                   ),
 
                   const SizedBox(height: 20),
 
+                  // ==================================================
+                  // DEVICE
+                  // ==================================================
+
                   _InfoRow(
                     icon: Icons.devices,
                     label: 'Device',
                     value: device,
+                    primaryText: primaryText,
+                    secondaryText: tertiaryText,
                   ),
 
-                  const Divider(height: 28),
+                  Divider(
+                    height: 28,
+                    color: dividerColor,
+                  ),
+
+                  // ==================================================
+                  // ALERT
+                  // ==================================================
 
                   _InfoRow(
-                    icon: Icons.notifications,
+                    icon:
+                        Icons.notifications,
                     label: 'Alert',
                     value: title,
+                    primaryText: primaryText,
+                    secondaryText: tertiaryText,
                   ),
 
-                  const Divider(height: 28),
+                  Divider(
+                    height: 28,
+                    color: dividerColor,
+                  ),
+
+                  // ==================================================
+                  // TIME
+                  // ==================================================
 
                   _InfoRow(
-                    icon: Icons.access_time,
+                    icon:
+                        Icons.access_time,
                     label: 'Time',
                     value: time,
+                    primaryText: primaryText,
+                    secondaryText: tertiaryText,
                   ),
                 ],
               ),
@@ -217,11 +309,13 @@ class AlertDetailsScreen extends StatelessWidget {
                   'Back to Alerts',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight:
+                        FontWeight.w600,
                   ),
                 ),
 
-                style: ElevatedButton.styleFrom(
+                style:
+                    ElevatedButton.styleFrom(
                   backgroundColor:
                       const Color(0xFF6C63FF),
 
@@ -233,7 +327,9 @@ class AlertDetailsScreen extends StatelessWidget {
                   shape:
                       RoundedRectangleBorder(
                     borderRadius:
-                        BorderRadius.circular(16),
+                        BorderRadius.circular(
+                      16,
+                    ),
                   ),
                 ),
               ),
@@ -253,11 +349,15 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color primaryText;
+  final Color secondaryText;
 
   const _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
+    required this.primaryText,
+    required this.secondaryText,
   });
 
   @override
@@ -267,13 +367,22 @@ class _InfoRow extends StatelessWidget {
           CrossAxisAlignment.start,
 
       children: [
-        Icon(
-          icon,
-          color: const Color(0xFF6C63FF),
+
+        // ==================================================
+        // ICON
+        // ==================================================
+
+        const Icon(
+          Icons.devices,
+          color: Color(0xFF6C63FF),
           size: 24,
         ),
 
         const SizedBox(width: 14),
+
+        // ==================================================
+        // TEXT
+        // ==================================================
 
         Expanded(
           child: Column(
@@ -281,12 +390,14 @@ class _InfoRow extends StatelessWidget {
                 CrossAxisAlignment.start,
 
             children: [
+
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF9AA9BD),
-                  fontWeight: FontWeight.w500,
+                  color: secondaryText,
+                  fontWeight:
+                      FontWeight.w500,
                 ),
               ),
 
@@ -294,10 +405,11 @@ class _InfoRow extends StatelessWidget {
 
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF263247),
-                  fontWeight: FontWeight.w600,
+                  color: primaryText,
+                  fontWeight:
+                      FontWeight.w600,
                 ),
               ),
             ],

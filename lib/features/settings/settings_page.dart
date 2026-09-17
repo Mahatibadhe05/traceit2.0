@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'profile_page.dart';
 import 'permission_page.dart';
@@ -8,7 +10,7 @@ import 'contact_support_page.dart';
 import 'about_page.dart';
 
 import '../../core/utils/responsive.dart';
-import '../../services/auth_service.dart';
+import '../../core/theme/theme_controller.dart';
 import '../auth/login_page.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -21,19 +23,268 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool notificationsEnabled = true;
   bool soundVibrationEnabled = true;
+  bool darkModeEnabled = false;
+
+  bool _isLoadingPreferences = true;
 
   final Color primaryBlue = const Color(0xFF1769FF);
   final Color darkBlue = const Color(0xFF14244A);
 
-  final AuthService _authService = AuthService();
+  final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
 
-  void showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("$feature will be available soon."),
-        duration: const Duration(seconds: 2),
-      ),
+  final FirebaseAuth _auth =
+      FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  // ============================================================
+  // LOAD PREFERENCES
+  // ============================================================
+
+  Future<void> _loadPreferences() async {
+    try {
+      final user = _auth.currentUser;
+
+      if (user == null) {
+        if (mounted) {
+          setState(() {
+            _isLoadingPreferences = false;
+          });
+        }
+        return;
+      }
+
+      final document = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final data = document.data();
+
+      if (data != null && data['preferences'] != null) {
+        final preferences =
+            Map<String, dynamic>.from(
+          data['preferences'] as Map,
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          notificationsEnabled =
+              preferences['notifications'] as bool? ?? true;
+
+          soundVibrationEnabled =
+              (preferences['sound'] as bool? ?? true) &&
+              (preferences['vibration'] as bool? ?? true);
+
+          darkModeEnabled =
+              preferences['darkMode'] as bool? ?? false;
+
+          _isLoadingPreferences = false;
+        });
+
+        // Apply saved dark mode when Settings is opened.
+        themeController.setDarkMode(darkModeEnabled);
+      } else {
+        await _savePreferences(
+          notifications: true,
+          soundVibration: true,
+          darkMode: false,
+        );
+
+        if (!mounted) return;
+
+        setState(() {
+          notificationsEnabled = true;
+          soundVibrationEnabled = true;
+          darkModeEnabled = false;
+          _isLoadingPreferences = false;
+        });
+
+        themeController.setDarkMode(false);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingPreferences = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to load preferences.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ============================================================
+  // SAVE PREFERENCES
+  // ============================================================
+
+  Future<void> _savePreferences({
+    required bool notifications,
+    required bool soundVibration,
+    required bool darkMode,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception(
+        'No authenticated user found.',
+      );
+    }
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .set(
+      {
+        'preferences': {
+          'notifications': notifications,
+          'sound': soundVibration,
+          'vibration': soundVibration,
+          'darkMode': darkMode,
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
     );
+  }
+
+  // ============================================================
+  // UPDATE NOTIFICATIONS
+  // ============================================================
+
+  Future<void> _updateNotifications(
+    bool value,
+  ) async {
+    final oldValue = notificationsEnabled;
+
+    setState(() {
+      notificationsEnabled = value;
+    });
+
+    try {
+      await _savePreferences(
+        notifications: value,
+        soundVibration: soundVibrationEnabled,
+        darkMode: darkModeEnabled,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        notificationsEnabled = oldValue;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save notification setting.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ============================================================
+  // UPDATE SOUND & VIBRATION
+  // ============================================================
+
+  Future<void> _updateSoundVibration(
+    bool value,
+  ) async {
+    final oldValue = soundVibrationEnabled;
+
+    setState(() {
+      soundVibrationEnabled = value;
+    });
+
+    try {
+      await _savePreferences(
+        notifications: notificationsEnabled,
+        soundVibration: value,
+        darkMode: darkModeEnabled,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        soundVibrationEnabled = oldValue;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save sound setting.',
+          ),
+        ),
+      );
+    }
+  }
+
+  // ============================================================
+  // UPDATE DARK MODE
+  // ============================================================
+
+  Future<void> _updateDarkMode(
+    bool value,
+  ) async {
+    final oldValue = darkModeEnabled;
+
+    // Change the UI immediately.
+    setState(() {
+      darkModeEnabled = value;
+    });
+
+    // Change the entire app theme immediately.
+    themeController.setDarkMode(value);
+
+    try {
+      await _savePreferences(
+        notifications: notificationsEnabled,
+        soundVibration: soundVibrationEnabled,
+        darkMode: value,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? 'Dark Mode preference saved.'
+                : 'Dark Mode preference disabled.',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      // Roll back both the switch and the app theme.
+      setState(() {
+        darkModeEnabled = oldValue;
+      });
+
+      themeController.setDarkMode(oldValue);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save dark mode setting.',
+          ),
+        ),
+      );
+    }
   }
 
   // ============================================================
@@ -42,7 +293,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _logout() async {
     try {
-      await _authService.logout();
+      await _auth.signOut();
+
+      // Reset theme when logging out.
+      themeController.setDarkMode(false);
 
       if (!mounted) return;
 
@@ -59,7 +313,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Unable to log out. Please try again.",
+            'Unable to log out. Please try again.',
           ),
         ),
       );
@@ -72,7 +326,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(
-            "Log Out",
+            'Log Out',
             style: TextStyle(
               fontSize: Responsive.font(
                 dialogContext,
@@ -81,7 +335,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           content: Text(
-            "Are you sure you want to log out?",
+            'Are you sure you want to log out?',
             style: TextStyle(
               fontSize: Responsive.font(
                 dialogContext,
@@ -94,15 +348,14 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: () {
                 Navigator.pop(dialogContext);
               },
-              child: const Text("Cancel"),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
-
                 await _logout();
               },
-              child: const Text("Log Out"),
+              child: const Text('Log Out'),
             ),
           ],
         );
@@ -110,20 +363,29 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF8FAFF),
 
       // ================= APP BAR =================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:
+            isDark ? const Color(0xFF121212) : Colors.white,
         elevation: 0,
         title: Text(
-          "Settings",
+          'Settings',
           style: TextStyle(
-            color: darkBlue,
+            color: isDark ? Colors.white : darkBlue,
             fontSize: Responsive.font(
               context,
               6.67,
@@ -135,797 +397,811 @@ class _SettingsPageState extends State<SettingsPage> {
 
       // ================= BODY =================
 
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          Responsive.w(
-            context,
-            16 / 390,
-          ),
-          Responsive.h(
-            context,
-            10 / 844,
-          ),
-          Responsive.w(
-            context,
-            16 / 390,
-          ),
-          Responsive.h(
-            context,
-            30 / 844,
-          ),
-        ),
-        children: [
-          // ================= ACCOUNT =================
-
-          _sectionTitle(
-            context,
-            "ACCOUNT",
-          ),
-
-          _settingsCard(
-            context: context,
-            children: [
-              // USER PROFILE
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    6 / 844,
-                  ),
-                ),
-                leading: CircleAvatar(
-                  radius: Responsive.radius(
-                    context,
-                    28,
-                  ),
-                  backgroundColor: const Color(
-                    0xFFE4EDFF,
-                  ),
-                  child: Icon(
-                    Icons.person,
-                    color: primaryBlue,
-                    size: Responsive.font(
-                      context,
-                      8.2,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  "User Profile",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  "View and edit your profile",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ProfilePage(),
-                    ),
-                  );
-                },
-              ),
-
-              Divider(
-                height: Responsive.h(
+      body: _isLoadingPreferences
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView(
+              padding: EdgeInsets.fromLTRB(
+                Responsive.w(
                   context,
-                  1 / 844,
+                  16 / 390,
                 ),
-              ),
-
-              // EDIT PROFILE
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.person_outline,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.15,
-                  ),
-                ),
-                title: Text(
-                  "Edit Profile",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ProfilePage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-
-          SizedBox(
-            height: Responsive.h(
-              context,
-              22 / 844,
-            ),
-          ),
-
-          // ================= APP PREFERENCES =================
-
-          _sectionTitle(
-            context,
-            "APP PREFERENCES",
-          ),
-
-          _settingsCard(
-            context: context,
-            children: [
-              // NOTIFICATIONS
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.notifications_none,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    7.18,
-                  ),
-                ),
-                title: Text(
-                  "Notifications",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Manage alerts and updates",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Switch(
-                  value: notificationsEnabled,
-                  activeThumbColor: primaryBlue,
-                  activeTrackColor: const Color(
-                    0xFF8DB5FF,
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      notificationsEnabled = value;
-                    });
-                  },
-                ),
-              ),
-
-              Divider(
-                height: Responsive.h(
+                Responsive.h(
                   context,
-                  1 / 844,
+                  10 / 844,
                 ),
-              ),
-
-              // SOUND & VIBRATION
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.volume_up_outlined,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Sound & Vibration",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Sound and vibration settings",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Switch(
-                  value: soundVibrationEnabled,
-                  activeThumbColor: primaryBlue,
-                  activeTrackColor: const Color(
-                    0xFF8DB5FF,
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      soundVibrationEnabled = value;
-                    });
-                  },
-                ),
-              ),
-
-              Divider(
-                height: Responsive.h(
+                Responsive.w(
                   context,
-                  1 / 844,
+                  16 / 390,
                 ),
-              ),
-
-              // DARK MODE
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.dark_mode_outlined,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Dark Mode",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Use dark theme",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Switch(
-                  value: false,
-                  activeThumbColor: primaryBlue,
-                  activeTrackColor: const Color(
-                    0xFF8DB5FF,
-                  ),
-                  onChanged: (value) {
-                    // Dark mode will be implemented later.
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(
-            height: Responsive.h(
-              context,
-              22 / 844,
-            ),
-          ),
-
-          // ================= PRIVACY & SECURITY =================
-
-          _sectionTitle(
-            context,
-            "PRIVACY & SECURITY",
-          ),
-
-          _settingsCard(
-            context: context,
-            children: [
-              // PERMISSION MANAGEMENT
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.verified_user_outlined,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Permission Management",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Manage all app permissions",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const PermissionPage(),
-                    ),
-                  );
-                },
-              ),
-
-              Divider(
-                height: Responsive.h(
+                Responsive.h(
                   context,
-                  1 / 844,
+                  30 / 844,
                 ),
               ),
+              children: [
 
-              // PRIVACY & DATA
+                // ================= ACCOUNT =================
 
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.shield_outlined,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Privacy & Data",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Learn how we protect your data",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const PrivacyDataPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-
-          SizedBox(
-            height: Responsive.h(
-              context,
-              22 / 844,
-            ),
-          ),
-
-          // ================= SUPPORT =================
-
-          _sectionTitle(
-            context,
-            "SUPPORT",
-          ),
-
-          _settingsCard(
-            context: context,
-            children: [
-              // HELP & FAQ
-
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.help_outline,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Help & FAQ",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Find answers to common questions",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const HelpFaqPage(),
-                    ),
-                  );
-                },
-              ),
-
-              Divider(
-                height: Responsive.h(
+                _sectionTitle(
                   context,
-                  1 / 844,
+                  'ACCOUNT',
                 ),
-              ),
 
-              // CONTACT SUPPORT
+                _settingsCard(
+                  context: context,
+                  children: [
 
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
-                    context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
-                  ),
-                ),
-                leading: Icon(
-                  Icons.chat_bubble_outline,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "Contact Support",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
+                    // USER PROFILE
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          6 / 844,
+                        ),
+                      ),
+                      leading: CircleAvatar(
+                        radius: Responsive.radius(
+                          context,
+                          28,
+                        ),
+                        backgroundColor:
+                            isDark
+                                ? const Color(0xFF263B66)
+                                : const Color(0xFFE4EDFF),
+                        child: Icon(
+                          Icons.person,
+                          color: primaryBlue,
+                          size: Responsive.font(
+                            context,
+                            8.2,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        'User Profile',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'View and edit your profile',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ProfilePage(),
+                          ),
+                        );
+                      },
                     ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "We're here to help",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
+
+                    Divider(
+                      height: Responsive.h(
+                        context,
+                        1 / 844,
+                      ),
                     ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ContactSupportPage(),
+
+                    // EDIT PROFILE
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.person_outline,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.15,
+                        ),
+                      ),
+                      title: Text(
+                        'Edit Profile',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ProfilePage(),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-            ],
-          ),
+                  ],
+                ),
 
-          SizedBox(
-            height: Responsive.h(
-              context,
-              22 / 844,
-            ),
-          ),
-
-          // ================= ABOUT =================
-
-          _sectionTitle(
-            context,
-            "ABOUT",
-          ),
-
-          _settingsCard(
-            context: context,
-            children: [
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: Responsive.w(
+                SizedBox(
+                  height: Responsive.h(
                     context,
-                    16 / 390,
-                  ),
-                  vertical: Responsive.h(
-                    context,
-                    4 / 844,
+                    22 / 844,
                   ),
                 ),
-                leading: Icon(
-                  Icons.info_outline,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6.92,
-                  ),
-                ),
-                title: Text(
-                  "About TraceIt",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      4.1,
-                    ),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                subtitle: Text(
-                  "Version 1.0.0",
-                  style: TextStyle(
-                    fontSize: Responsive.font(
-                      context,
-                      3.33,
-                    ),
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.chevron_right,
-                  color: primaryBlue,
-                  size: Responsive.font(
-                    context,
-                    6,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const AboutPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
 
-          SizedBox(
-            height: Responsive.h(
-              context,
-              28 / 844,
-            ),
-          ),
+                // ================= APP PREFERENCES =================
 
-          // ================= LOG OUT =================
-
-          SizedBox(
-            height: Responsive.h(
-              context,
-              52 / 844,
-            ),
-            child: OutlinedButton.icon(
-              onPressed: _showLogoutConfirmation,
-              icon: Icon(
-                Icons.logout,
-                size: Responsive.font(
+                _sectionTitle(
                   context,
-                  5.64,
+                  'APP PREFERENCES',
                 ),
-              ),
-              label: Text(
-                "Log Out",
-                style: TextStyle(
-                  fontSize: Responsive.font(
+
+                _settingsCard(
+                  context: context,
+                  children: [
+
+                    // NOTIFICATIONS
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.notifications_none,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          7.18,
+                        ),
+                      ),
+                      title: Text(
+                        'Notifications',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Manage alerts and updates',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Switch(
+                        value: notificationsEnabled,
+                        activeThumbColor: primaryBlue,
+                        activeTrackColor:
+                            const Color(0xFF8DB5FF),
+                        onChanged:
+                            _updateNotifications,
+                      ),
+                    ),
+
+                    Divider(
+                      height: Responsive.h(
+                        context,
+                        1 / 844,
+                      ),
+                    ),
+
+                    // SOUND & VIBRATION
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.volume_up_outlined,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Sound & Vibration',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Sound and vibration settings',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Switch(
+                        value: soundVibrationEnabled,
+                        activeThumbColor: primaryBlue,
+                        activeTrackColor:
+                            const Color(0xFF8DB5FF),
+                        onChanged:
+                            _updateSoundVibration,
+                      ),
+                    ),
+
+                    Divider(
+                      height: Responsive.h(
+                        context,
+                        1 / 844,
+                      ),
+                    ),
+
+                    // DARK MODE
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.dark_mode_outlined,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Dark Mode',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Use dark theme',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Switch(
+                        value: darkModeEnabled,
+                        activeThumbColor: primaryBlue,
+                        activeTrackColor:
+                            const Color(0xFF8DB5FF),
+                        onChanged: _updateDarkMode,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: Responsive.h(
                     context,
-                    4.1,
+                    22 / 844,
                   ),
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(
-                  color: Colors.red,
+
+                // ================= PRIVACY & SECURITY =================
+
+                _sectionTitle(
+                  context,
+                  'PRIVACY & SECURITY',
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    Responsive.radius(
-                      context,
-                      14,
+
+                _settingsCard(
+                  context: context,
+                  children: [
+
+                    // PERMISSION MANAGEMENT
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.verified_user_outlined,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Permission Management',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Manage all app permissions',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const PermissionPage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    Divider(
+                      height: Responsive.h(
+                        context,
+                        1 / 844,
+                      ),
+                    ),
+
+                    // PRIVACY & DATA
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.shield_outlined,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Privacy & Data',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Learn how we protect your data',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const PrivacyDataPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: Responsive.h(
+                    context,
+                    22 / 844,
+                  ),
+                ),
+
+                // ================= SUPPORT =================
+
+                _sectionTitle(
+                  context,
+                  'SUPPORT',
+                ),
+
+                _settingsCard(
+                  context: context,
+                  children: [
+
+                    // HELP & FAQ
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.help_outline,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Help & FAQ',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Find answers to common questions',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const HelpFaqPage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    Divider(
+                      height: Responsive.h(
+                        context,
+                        1 / 844,
+                      ),
+                    ),
+
+                    // CONTACT SUPPORT
+
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.chat_bubble_outline,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'Contact Support',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "We're here to help",
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ContactSupportPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: Responsive.h(
+                    context,
+                    22 / 844,
+                  ),
+                ),
+
+                // ================= ABOUT =================
+
+                _sectionTitle(
+                  context,
+                  'ABOUT',
+                ),
+
+                _settingsCard(
+                  context: context,
+                  children: [
+                    ListTile(
+                      contentPadding:
+                          EdgeInsets.symmetric(
+                        horizontal: Responsive.w(
+                          context,
+                          16 / 390,
+                        ),
+                        vertical: Responsive.h(
+                          context,
+                          4 / 844,
+                        ),
+                      ),
+                      leading: Icon(
+                        Icons.info_outline,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6.92,
+                        ),
+                      ),
+                      title: Text(
+                        'About TraceIt',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            4.1,
+                          ),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Version 1.0.0',
+                        style: TextStyle(
+                          fontSize: Responsive.font(
+                            context,
+                            3.33,
+                          ),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: primaryBlue,
+                        size: Responsive.font(
+                          context,
+                          6,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AboutPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  height: Responsive.h(
+                    context,
+                    28 / 844,
+                  ),
+                ),
+
+                // ================= LOG OUT =================
+
+                SizedBox(
+                  height: Responsive.h(
+                    context,
+                    52 / 844,
+                  ),
+                  child: OutlinedButton.icon(
+                    onPressed:
+                        _showLogoutConfirmation,
+                    icon: Icon(
+                      Icons.logout,
+                      size: Responsive.font(
+                        context,
+                        5.64,
+                      ),
+                    ),
+                    label: Text(
+                      'Log Out',
+                      style: TextStyle(
+                        fontSize: Responsive.font(
+                          context,
+                          4.1,
+                        ),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(
+                        color: Colors.red,
+                      ),
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(
+                          Responsive.radius(
+                            context,
+                            14,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
 
-          SizedBox(
-            height: Responsive.h(
-              context,
-              20 / 844,
-            ),
-          ),
-
-          // ================= PROJECT NOTE =================
-
-          Center(
-            child: Text(
-              "TraceIt • Never lose what matters.",
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: Responsive.font(
-                  context,
-                  3.08,
+                SizedBox(
+                  height: Responsive.h(
+                    context,
+                    20 / 844,
+                  ),
                 ),
-              ),
+
+                // ================= PROJECT NOTE =================
+
+                Center(
+                  child: Text(
+                    'TraceIt • Never lose what matters.',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: Responsive.font(
+                        context,
+                        3.08,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  // ================= SECTION TITLE =================
+  // ============================================================
+  // SECTION TITLE
+  // ============================================================
 
   Widget _sectionTitle(
     BuildContext context,
@@ -960,15 +1236,22 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ================= SETTINGS CARD =================
+  // ============================================================
+  // SETTINGS CARD
+  // ============================================================
 
   Widget _settingsCard({
     required BuildContext context,
     required List<Widget> children,
   }) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white,
         borderRadius: BorderRadius.circular(
           Responsive.radius(
             context,
@@ -976,22 +1259,23 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(
-              alpha: 0.06,
-            ),
-            blurRadius: Responsive.w(
-              context,
-              12 / 390,
-            ),
-            offset: Offset(
-              0,
-              Responsive.h(
+          if (!isDark)
+            BoxShadow(
+              color: Colors.blue.withValues(
+                alpha: 0.06,
+              ),
+              blurRadius: Responsive.w(
                 context,
-                4 / 844,
+                12 / 390,
+              ),
+              offset: Offset(
+                0,
+                Responsive.h(
+                  context,
+                  4 / 844,
+                ),
               ),
             ),
-          ),
         ],
       ),
       child: Column(

@@ -9,19 +9,38 @@ class ContactSupportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : const Color(0xFFF8FAFF);
+
+    final Color appBarColor = isDark
+        ? const Color(0xFF121212)
+        : Colors.white;
+
+    final Color textColor = isDark
+        ? Colors.white
+        : darkBlue;
+
+    final Color secondaryTextColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: backgroundColor,
 
       // ================= APP BAR =================
 
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
         elevation: 0,
 
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
-            color: darkBlue,
+            color: textColor,
             size: Responsive.font(context, 6),
           ),
           onPressed: () {
@@ -32,7 +51,7 @@ class ContactSupportPage extends StatelessWidget {
         title: Text(
           "Contact Support",
           style: TextStyle(
-            color: darkBlue,
+            color: textColor,
             fontSize: Responsive.font(context, 5.65),
             fontWeight: FontWeight.bold,
           ),
@@ -59,31 +78,38 @@ class ContactSupportPage extends StatelessWidget {
             ),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.white,
+
               borderRadius: BorderRadius.circular(
                 Responsive.radius(context, 18),
               ),
 
               boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withValues(alpha: 0.06),
-                  blurRadius: Responsive.w(context, 12 / 390),
-                  offset: Offset(
-                    0,
-                    Responsive.h(context, 4 / 844),
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.06),
+                    blurRadius:
+                        Responsive.w(context, 12 / 390),
+                    offset: Offset(
+                      0,
+                      Responsive.h(context, 4 / 844),
+                    ),
                   ),
-                ),
               ],
             ),
 
             child: Column(
               children: [
 
-                // SUPPORT ICON
+                // ================= SUPPORT ICON =================
 
                 CircleAvatar(
                   radius: Responsive.radius(context, 30),
-                  backgroundColor: const Color(0xFFE4EDFF),
+                  backgroundColor: isDark
+                      ? const Color(0xFF263B66)
+                      : const Color(0xFFE4EDFF),
 
                   child: Icon(
                     Icons.support_agent,
@@ -96,12 +122,12 @@ class ContactSupportPage extends StatelessWidget {
                   height: Responsive.h(context, 14 / 844),
                 ),
 
-                // HEADER TITLE
+                // ================= HEADER TITLE =================
 
                 Text(
                   "We're here to help",
                   style: TextStyle(
-                    color: darkBlue,
+                    color: textColor,
                     fontSize: Responsive.font(context, 5.13),
                     fontWeight: FontWeight.bold,
                   ),
@@ -111,14 +137,14 @@ class ContactSupportPage extends StatelessWidget {
                   height: Responsive.h(context, 7 / 844),
                 ),
 
-                // HEADER DESCRIPTION
+                // ================= HEADER DESCRIPTION =================
 
                 Text(
                   "Having trouble with TraceIt? "
                   "Choose an option below and we'll help you out.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: secondaryTextColor,
                     fontSize: Responsive.font(context, 3.59),
                     height: 1.5,
                   ),
@@ -196,7 +222,8 @@ class ContactSupportPage extends StatelessWidget {
               color: primaryBlue,
               fontSize: Responsive.font(context, 3.59),
               fontWeight: FontWeight.bold,
-              letterSpacing: Responsive.w(context, 0.5 / 390),
+              letterSpacing:
+                  Responsive.w(context, 0.5 / 390),
             ),
           ),
 
@@ -212,25 +239,32 @@ class ContactSupportPage extends StatelessWidget {
             ),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.white,
+
               borderRadius: BorderRadius.circular(
                 Responsive.radius(context, 18),
               ),
 
               boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withValues(alpha: 0.06),
-                  blurRadius: Responsive.w(context, 12 / 390),
-                  offset: Offset(
-                    0,
-                    Responsive.h(context, 4 / 844),
+                if (!isDark)
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.06),
+                    blurRadius:
+                        Responsive.w(context, 12 / 390),
+                    offset: Offset(
+                      0,
+                      Responsive.h(context, 4 / 844),
+                    ),
                   ),
-                ),
               ],
             ),
 
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
               children: [
 
                 // ================= SUPPORT HOURS =================
@@ -251,8 +285,9 @@ class ContactSupportPage extends StatelessWidget {
                     Text(
                       "Support Hours",
                       style: TextStyle(
-                        color: darkBlue,
-                        fontSize: Responsive.font(context, 3.85),
+                        color: textColor,
+                        fontSize:
+                            Responsive.font(context, 3.85),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -266,8 +301,9 @@ class ContactSupportPage extends StatelessWidget {
                 Text(
                   "Monday – Friday\n9:00 AM – 6:00 PM",
                   style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: Responsive.font(context, 3.33),
+                    color: secondaryTextColor,
+                    fontSize:
+                        Responsive.font(context, 3.33),
                     height: 1.5,
                   ),
                 ),
@@ -294,8 +330,9 @@ class ContactSupportPage extends StatelessWidget {
                     Text(
                       "Response Time",
                       style: TextStyle(
-                        color: darkBlue,
-                        fontSize: Responsive.font(context, 3.85),
+                        color: textColor,
+                        fontSize:
+                            Responsive.font(context, 3.85),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -310,8 +347,9 @@ class ContactSupportPage extends StatelessWidget {
                   "We aim to respond to support requests "
                   "within 1–2 working days.",
                   style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: Responsive.font(context, 3.33),
+                    color: secondaryTextColor,
+                    fontSize:
+                        Responsive.font(context, 3.33),
                     height: 1.5,
                   ),
                 ),
@@ -348,22 +386,40 @@ class ContactSupportPage extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final bool isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color cardColor = isDark
+        ? const Color(0xFF1E1E1E)
+        : Colors.white;
+
+    final Color titleColor = isDark
+        ? Colors.white
+        : darkBlue;
+
+    final Color subtitleColor = isDark
+        ? Colors.white70
+        : Colors.black54;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
+
         borderRadius: BorderRadius.circular(
           Responsive.radius(context, 18),
         ),
 
         boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.06),
-            blurRadius: Responsive.w(context, 12 / 390),
-            offset: Offset(
-              0,
-              Responsive.h(context, 4 / 844),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.blue.withValues(alpha: 0.06),
+              blurRadius:
+                  Responsive.w(context, 12 / 390),
+              offset: Offset(
+                0,
+                Responsive.h(context, 4 / 844),
+              ),
             ),
-          ),
         ],
       ),
 
@@ -381,7 +437,10 @@ class ContactSupportPage extends StatelessWidget {
           ),
 
           decoration: BoxDecoration(
-            color: const Color(0xFFE4EDFF),
+            color: isDark
+                ? const Color(0xFF263B66)
+                : const Color(0xFFE4EDFF),
+
             borderRadius: BorderRadius.circular(
               Responsive.radius(context, 12),
             ),
@@ -399,7 +458,7 @@ class ContactSupportPage extends StatelessWidget {
         title: Text(
           title,
           style: TextStyle(
-            color: darkBlue,
+            color: titleColor,
             fontSize: Responsive.font(context, 4.1),
             fontWeight: FontWeight.w600,
           ),
@@ -415,7 +474,7 @@ class ContactSupportPage extends StatelessWidget {
           child: Text(
             subtitle,
             style: TextStyle(
-              color: Colors.black54,
+              color: subtitleColor,
               fontSize: Responsive.font(context, 3.33),
             ),
           ),

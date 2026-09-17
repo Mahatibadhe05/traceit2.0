@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../utils/responsive.dart';
@@ -66,9 +67,7 @@ class DeviceCard extends StatelessWidget {
       ),
     );
 
-
     if (!context.mounted) return;
-
 
     if (newName != null && newName.trim().isNotEmpty) {
       onRename?.call(newName.trim());
@@ -76,13 +75,31 @@ class DeviceCard extends StatelessWidget {
   }
 
   Future<void> _showDeleteDialog(BuildContext context) async {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Device'),
-          content: const Text(
+          backgroundColor:
+              isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          title: Text(
+            'Delete Device',
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white
+                  : const Color(0xFF111827),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
             'Are you sure you want to remove this device?',
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white70
+                  : const Color(0xFF667085),
+            ),
           ),
           actions: [
             TextButton(
@@ -112,11 +129,15 @@ class DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     final displayName = deviceName.trim().isEmpty
         ? 'Unnamed Device'
         : deviceName.trim();
 
-    final double imageRadius = Responsive.w(context, 0.095);
+    final double imageRadius =
+        Responsive.w(context, 0.095);
 
     return GestureDetector(
       onTap: onTap,
@@ -129,21 +150,27 @@ class DeviceCard extends StatelessWidget {
           Responsive.w(context, 0.045),
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(
             Responsive.radius(context, 22),
           ),
           border: Border.all(
-            color: const Color(0xFFE8EEF8),
+            color: isDark
+                ? const Color(0xFF303030)
+                : const Color(0xFFE8EEF8),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x12000000),
-              blurRadius: 18,
-              offset: Offset(0, 7),
-            ),
-          ],
+          boxShadow: isDark
+              ? []
+              : const [
+                  BoxShadow(
+                    color: Color(0x12000000),
+                    blurRadius: 18,
+                    offset: Offset(0, 7),
+                  ),
+                ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,18 +193,27 @@ class DeviceCard extends StatelessWidget {
                   ),
                   child: CircleAvatar(
                     radius: imageRadius,
-                    backgroundColor: const Color(0xFFF1F5FF),
+                    backgroundColor: isDark
+                        ? const Color(0xFF26344D)
+                        : const Color(0xFFF1F5FF),
                     backgroundImage:
-                        imagePath != null && imagePath!.isNotEmpty
+                        imagePath != null &&
+                                imagePath!.isNotEmpty
                             ? FileImage(File(imagePath!))
                             : null,
-                    child: imagePath == null || imagePath!.isEmpty
-                        ? Icon(
-                            _getDeviceIcon(displayName),
-                            color: const Color(0xFF246BFE),
-                            size: Responsive.w(context, 0.085),
-                          )
-                        : null,
+                    child:
+                        imagePath == null ||
+                                imagePath!.isEmpty
+                            ? Icon(
+                                _getDeviceIcon(displayName),
+                                color:
+                                    const Color(0xFF246BFE),
+                                size: Responsive.w(
+                                  context,
+                                  0.085,
+                                ),
+                              )
+                            : null,
                   ),
                 ),
 
@@ -193,15 +229,18 @@ class DeviceCard extends StatelessWidget {
                       left: Responsive.w(context, 0.005),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF111827),
+                          style: TextStyle(
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF111827),
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                           ),
@@ -212,7 +251,9 @@ class DeviceCard extends StatelessWidget {
                         ),
 
                         Text(
-                          connected ? 'Connected' : 'Disconnected',
+                          connected
+                              ? 'Connected'
+                              : 'Disconnected',
                           style: TextStyle(
                             color: connected
                                 ? const Color(0xFF31A85B)
@@ -230,7 +271,9 @@ class DeviceCard extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   icon: Icon(
                     Icons.more_vert,
-                    color: const Color(0xFF6B7280),
+                    color: isDark
+                        ? Colors.white70
+                        : const Color(0xFF6B7280),
                     size: Responsive.w(context, 0.065),
                   ),
                   onSelected: (value) {
@@ -242,12 +285,12 @@ class DeviceCard extends StatelessWidget {
                       _showDeleteDialog(context);
                     }
                   },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
                       value: 'rename',
                       child: Text('Rename'),
                     ),
-                    PopupMenuItem(
+                    const PopupMenuItem(
                       value: 'delete',
                       child: Text('Delete Device'),
                     ),
@@ -276,21 +319,28 @@ class DeviceCard extends StatelessWidget {
 
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Last synced',
                         style: TextStyle(
-                          color: Color(0xFF667085),
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF667085),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+
                       const SizedBox(height: 3),
+
                       Text(
                         lastSeen,
-                        style: const TextStyle(
-                          color: Color(0xFF111827),
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF111827),
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -301,11 +351,15 @@ class DeviceCard extends StatelessWidget {
 
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: Responsive.w(context, 0.035),
-                    vertical: Responsive.h(context, 0.012),
+                    horizontal:
+                        Responsive.w(context, 0.035),
+                    vertical:
+                        Responsive.h(context, 0.012),
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEAF8EE),
+                    color: isDark
+                        ? const Color(0xFF203528)
+                        : const Color(0xFFEAF8EE),
                     borderRadius: BorderRadius.circular(
                       Responsive.radius(context, 18),
                     ),
@@ -324,25 +378,32 @@ class DeviceCard extends StatelessWidget {
                       ),
 
                       SizedBox(
-                        width: Responsive.w(context, 0.02),
+                        width:
+                            Responsive.w(context, 0.02),
                       ),
 
                       Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             '$battery%',
-                            style: const TextStyle(
-                              color: Color(0xFF172033),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF172033),
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const Text(
+
+                          Text(
                             'Battery',
                             style: TextStyle(
-                              color: Color(0xFF667085),
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF667085),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -364,33 +425,27 @@ class DeviceCard extends StatelessWidget {
 class _RenameDeviceDialog extends StatefulWidget {
   final String currentName;
 
-
   const _RenameDeviceDialog({
     required this.currentName,
   });
-
 
   @override
   State<_RenameDeviceDialog> createState() =>
       _RenameDeviceDialogState();
 }
 
-
 class _RenameDeviceDialogState
     extends State<_RenameDeviceDialog> {
   late final TextEditingController _controller;
-
 
   @override
   void initState() {
     super.initState();
 
-
     _controller = TextEditingController(
       text: widget.currentName,
     );
   }
-
 
   @override
   void dispose() {
@@ -398,23 +453,39 @@ class _RenameDeviceDialogState
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return AlertDialog(
-      title: const Text('Rename Device'),
-
-
+      backgroundColor:
+          isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      title: Text(
+        'Rename Device',
+        style: TextStyle(
+          color: isDark
+              ? Colors.white
+              : const Color(0xFF111827),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       content: TextField(
         controller: _controller,
         autofocus: true,
         textInputAction: TextInputAction.done,
-        decoration: const InputDecoration(
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        decoration: InputDecoration(
           hintText: 'Enter device name',
+          hintStyle: TextStyle(
+            color: isDark
+                ? Colors.white54
+                : Colors.black45,
+          ),
         ),
       ),
-
-
       actions: [
         TextButton(
           onPressed: () {
@@ -423,14 +494,11 @@ class _RenameDeviceDialogState
           child: const Text('Cancel'),
         ),
 
-
         FilledButton(
           onPressed: () {
             final name = _controller.text.trim();
 
-
             if (name.isEmpty) return;
-
 
             Navigator.of(context).pop(name);
           },
